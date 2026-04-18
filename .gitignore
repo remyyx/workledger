@@ -45,6 +45,15 @@ supabase/.temp/
 METACONTEXT.md
 CLAUDE.md
 
+# Founder & strategy docs (confidential — repo is PUBLIC)
+docs/FOUNDER.md
+docs/STRATEGY.md
+docs/GROWTH_STRATEGY.md
+docs/MARKETING.md
+docs/DESIGN-FIXES.md
+docs/MONTHLY-ROADMAP.md
+docs/WorkLedger_Project_Dashboard.xlsx
+
 # Legal & company documents (confidential)
 ENTREPRISE/
 enterprise-information/
@@ -73,5 +82,10 @@ landing-v7-*.md
 # Screenshots
 Screenshot *.png
 
-# Claude worktrees
+# Experiment / preview files
+mcc-preview.html
+
+# Claude worktrees & memory
 .claude/worktrees/
+.claude/
+.auto-memory/
