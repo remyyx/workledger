@@ -1,0 +1,221 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" style="background:#0D1117">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#C9A84C" opacity="0.5"/>
+    </marker>
+    <style>
+      text { font-family: system-ui, -apple-system, sans-serif; }
+      .box { rx: 8; stroke-width: 1.5; }
+      .box:hover { filter: brightness(1.3); }
+      .box-label { font-size: 11px; font-weight: 600; fill: #E6EDF3; text-anchor: middle; }
+      .box-sub { font-size: 8px; fill: #8B949E; text-anchor: middle; }
+      .group-bg { rx: 14; stroke-width: 1; opacity: 0.06; }
+      .group-label { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; }
+      .conn { fill: none; stroke: #C9A84C; stroke-width: 1; opacity: 0.3; marker-end: url(#arr); }
+      .conn:hover { opacity: 0.8; stroke-width: 1.5; }
+      .title { font-size: 22px; font-weight: 800; fill: #C9A84C; }
+      .subtitle { font-size: 12px; fill: #8B949E; }
+    </style>
+  </defs>
+
+  <text x="40" y="38" class="title">StudioLedger</text>
+  <text x="225" y="38" class="subtitle">n8n Event Architecture — 14 Event Types</text>
+
+  <!-- ═══ TRIGGERS (left column) ═══ -->
+  <rect x="30" y="60" width="210" height="620" class="group-bg" fill="#3B82F6" stroke="#3B82F6"/>
+  <text x="50" y="85" class="group-label" fill="#3B82F6">TRIGGER SOURCES</text>
+
+  <rect x="50" y="100" width="170" height="38" class="box" fill="#1e3a5f" stroke="#3B82F6"/>
+  <text x="135" y="118" class="box-label">POST /api/auth</text>
+  <text x="135" y="130" class="box-sub">OAuth callback</text>
+
+  <rect x="50" y="155" width="170" height="38" class="box" fill="#1e3a5f" stroke="#3B82F6"/>
+  <text x="135" y="173" class="box-label">POST /api/contracts</text>
+  <text x="135" y="185" class="box-sub">Contract creation</text>
+
+  <rect x="50" y="210" width="170" height="38" class="box" fill="#1e3a5f" stroke="#3B82F6"/>
+  <text x="135" y="228" class="box-label">POST /api/milestones</text>
+  <text x="135" y="240" class="box-sub">All milestone actions</text>
+
+  <rect x="50" y="290" width="170" height="38" class="box" fill="#1e3a5f" stroke="#3B82F6"/>
+  <text x="135" y="308" class="box-label">releaseMilestone()</text>
+  <text x="135" y="320" class="box-sub">Escrow finish + fee</text>
+
+  <rect x="50" y="345" width="170" height="38" class="box" fill="#1e3a5f" stroke="#3B82F6"/>
+  <text x="135" y="363" class="box-label">mintCredential()</text>
+  <text x="135" y="375" class="box-sub">NFTokenMint on XRPL</text>
+
+  <rect x="50" y="420" width="170" height="38" class="box" fill="#1e3a5f" stroke="#3B82F6"/>
+  <text x="135" y="438" class="box-label">Admin Action</text>
+  <text x="135" y="450" class="box-sub">Dispute management</text>
+
+  <rect x="50" y="500" width="170" height="38" class="box" fill="#1e3a5f" stroke="#3B82F6"/>
+  <text x="135" y="518" class="box-label">Schedule (1h)</text>
+  <text x="135" y="530" class="box-sub">Cron job</text>
+
+  <!-- ═══ EVENTS (center column) ═══ -->
+  <rect x="290" y="60" width="340" height="620" class="group-bg" fill="#C9A84C" stroke="#C9A84C"/>
+  <text x="310" y="85" class="group-label" fill="#C9A84C">14 EVENT TYPES</text>
+
+  <!-- User -->
+  <rect x="310" y="100" width="155" height="32" class="box" fill="#2d1f0a" stroke="#39D2C0"/>
+  <text x="387" y="120" class="box-label" font-family="monospace" font-size="10">user.registered</text>
+
+  <!-- Contract -->
+  <rect x="310" y="148" width="155" height="32" class="box" fill="#2d1f0a" stroke="#58A6FF"/>
+  <text x="387" y="168" class="box-label" font-family="monospace" font-size="10">contract.created</text>
+
+  <rect x="310" y="192" width="155" height="32" class="box" fill="#2d1f0a" stroke="#58A6FF"/>
+  <text x="387" y="212" class="box-label" font-family="monospace" font-size="10">contract.funded</text>
+
+  <rect x="310" y="236" width="155" height="32" class="box" fill="#2d1f0a" stroke="#58A6FF"/>
+  <text x="387" y="256" class="box-label" font-family="monospace" font-size="10">contract.completed</text>
+
+  <!-- Milestone -->
+  <rect x="480" y="148" width="135" height="32" class="box" fill="#2d1f0a" stroke="#C9A84C"/>
+  <text x="547" y="168" class="box-label" font-family="monospace" font-size="10">m.funded</text>
+
+  <rect x="480" y="192" width="135" height="32" class="box" fill="#2d1f0a" stroke="#C9A84C"/>
+  <text x="547" y="212" class="box-label" font-family="monospace" font-size="10">m.submitted</text>
+
+  <rect x="480" y="236" width="135" height="32" class="box" fill="#2d1f0a" stroke="#C9A84C"/>
+  <text x="547" y="256" class="box-label" font-family="monospace" font-size="10">m.approved</text>
+
+  <rect x="480" y="280" width="135" height="32" class="box" fill="#2d1f0a" stroke="#C9A84C"/>
+  <text x="547" y="300" class="box-label" font-family="monospace" font-size="10">m.released</text>
+
+  <rect x="480" y="324" width="135" height="32" class="box" fill="#2d1f0a" stroke="#C9A84C"/>
+  <text x="547" y="344" class="box-label" font-family="monospace" font-size="10">m.disputed</text>
+
+  <!-- Dispute -->
+  <rect x="310" y="380" width="155" height="32" class="box" fill="#2d1f0a" stroke="#F85149"/>
+  <text x="387" y="400" class="box-label" font-family="monospace" font-size="10">dispute.opened</text>
+
+  <rect x="310" y="424" width="155" height="32" class="box" fill="#2d1f0a" stroke="#F85149"/>
+  <text x="387" y="444" class="box-label" font-family="monospace" font-size="10">dispute.escalated</text>
+
+  <rect x="310" y="468" width="155" height="32" class="box" fill="#2d1f0a" stroke="#F85149"/>
+  <text x="387" y="488" class="box-label" font-family="monospace" font-size="10">dispute.resolved</text>
+
+  <!-- Credential + System -->
+  <rect x="310" y="520" width="155" height="32" class="box" fill="#2d1f0a" stroke="#C9A84C"/>
+  <text x="387" y="540" class="box-label" font-family="monospace" font-size="10">mcc.minted</text>
+
+  <rect x="310" y="568" width="155" height="32" class="box" fill="#2d1f0a" stroke="#F0883E"/>
+  <text x="387" y="588" class="box-label" font-family="monospace" font-size="10">escrow.expiring</text>
+
+  <!-- ═══ ACTIONS (right column) ═══ -->
+  <rect x="680" y="60" width="480" height="620" class="group-bg" fill="#10B981" stroke="#10B981"/>
+  <text x="700" y="85" class="group-label" fill="#10B981">DOWNSTREAM ACTIONS</text>
+
+  <rect x="710" y="110" width="180" height="44" class="box" fill="#0a2e1f" stroke="#2ECC71"/>
+  <text x="800" y="131" class="box-label">Email Notifications</text>
+  <text x="800" y="145" class="box-sub">Welcome, receipts, review requests, alerts</text>
+
+  <rect x="710" y="180" width="180" height="44" class="box" fill="#0a2e1f" stroke="#4A154B"/>
+  <text x="800" y="201" class="box-label">Slack Channels</text>
+  <text x="800" y="215" class="box-sub">#contracts #releases #disputes #escalated</text>
+
+  <rect x="710" y="250" width="180" height="44" class="box" fill="#0a2e1f" stroke="#3ECF8E"/>
+  <text x="800" y="271" class="box-label">Supabase Updates</text>
+  <text x="800" y="285" class="box-sub">Stats, fee log, nft_registry confirm</text>
+
+  <rect x="710" y="320" width="180" height="44" class="box" fill="#0a2e1f" stroke="#1A73E8"/>
+  <text x="800" y="341" class="box-label">XRPL Verification</text>
+  <text x="800" y="355" class="box-sub">Confirm escrow tx + NFToken on-chain</text>
+
+  <rect x="710" y="390" width="180" height="44" class="box" fill="#0a2e1f" stroke="#E67E22"/>
+  <text x="800" y="411" class="box-label">Panel Assignment</text>
+  <text x="800" y="425" class="box-sub">3-member arbitration, skill matching</text>
+
+  <rect x="710" y="460" width="180" height="44" class="box" fill="#0a2e1f" stroke="#C9A84C"/>
+  <text x="800" y="481" class="box-label">Execute Payout</text>
+  <text x="800" y="495" class="box-sub">Release or refund via XRPL</text>
+
+  <!-- Event count summary -->
+  <rect x="930" y="110" width="210" height="395" rx="10" fill="#161B22" stroke="#30363D" stroke-width="1"/>
+  <text x="950" y="135" font-size="10" font-weight="700" fill="#C9A84C" letter-spacing="0.05em">EVENT → ACTION MAP</text>
+  <text x="950" y="158" font-size="9" fill="#8B949E">user.registered → email</text>
+  <text x="950" y="175" font-size="9" fill="#8B949E">contract.created → email, slack</text>
+  <text x="950" y="192" font-size="9" fill="#8B949E">contract.funded → email, xrpl verify</text>
+  <text x="950" y="209" font-size="9" fill="#8B949E">contract.completed → email, slack, db</text>
+  <text x="950" y="226" font-size="9" fill="#8B949E">milestone.funded → email</text>
+  <text x="950" y="243" font-size="9" fill="#8B949E">milestone.submitted → email (+ 48h reminder)</text>
+  <text x="950" y="260" font-size="9" fill="#8B949E">milestone.approved → email</text>
+  <text x="950" y="277" font-size="9" fill="#C9A84C" font-weight="600">milestone.released → email, slack, xrpl, db</text>
+  <text x="950" y="294" font-size="9" fill="#8B949E">milestone.disputed → email, slack</text>
+  <text x="950" y="311" font-size="9" fill="#8B949E">dispute.opened → panel, email</text>
+  <text x="950" y="328" font-size="9" fill="#8B949E">dispute.escalated → email, slack</text>
+  <text x="950" y="345" font-size="9" fill="#8B949E">dispute.resolved → payout, email, db</text>
+  <text x="950" y="362" font-size="9" fill="#8B949E">mcc.minted → xrpl verify, email, db</text>
+  <text x="950" y="379" font-size="9" fill="#F0883E">escrow.expiring → email, slack (scheduled)</text>
+  <line x1="950" y1="395" x2="1120" y2="395" stroke="#30363D" stroke-width="1"/>
+  <text x="950" y="415" font-size="10" fill="#C9A84C" font-weight="600">Webhook pattern:</text>
+  <text x="950" y="432" font-size="9" fill="#8B949E" font-family="monospace">POST ${N8N_BASE}/${event}</text>
+  <text x="950" y="449" font-size="9" fill="#8B949E">Payload: { event, timestamp, data }</text>
+  <text x="950" y="466" font-size="9" fill="#8B949E">Timeout: 5s (AbortSignal)</text>
+  <text x="950" y="483" font-size="9" fill="#8B949E">Fire-and-forget — non-blocking</text>
+
+  <!-- ═══ CONNECTIONS: Triggers → Events ═══ -->
+  <path d="M220 119 L305 119" class="conn"/>
+  <path d="M220 174 L305 164" class="conn"/>
+  <path d="M220 229 L305 208" class="conn"/>
+  <path d="M220 229 L475 164" class="conn"/>
+  <path d="M220 229 L475 208" class="conn"/>
+  <path d="M220 229 L475 252" class="conn"/>
+  <path d="M220 229 L475 340" class="conn"/>
+  <path d="M220 229 L305 396" class="conn"/>
+  <path d="M220 309 L305 252" class="conn"/>
+  <path d="M220 309 L475 296" class="conn"/>
+  <path d="M220 364 L305 536" class="conn"/>
+  <path d="M220 439 L305 440" class="conn"/>
+  <path d="M220 439 L305 484" class="conn"/>
+  <path d="M220 519 L305 584" class="conn"/>
+
+  <!-- ═══ CONNECTIONS: Events → Actions ═══ -->
+  <!-- user.registered → email -->
+  <path d="M465 116 L705 132" class="conn"/>
+  <!-- contract.created → email, slack -->
+  <path d="M465 164 L705 132" class="conn"/>
+  <path d="M465 164 L705 202" class="conn"/>
+  <!-- contract.funded → email, xrpl -->
+  <path d="M465 208 L705 132" class="conn"/>
+  <path d="M465 208 L705 342" class="conn"/>
+  <!-- contract.completed → email, slack, db -->
+  <path d="M465 252 L705 132" class="conn"/>
+  <path d="M465 252 L705 202" class="conn"/>
+  <path d="M465 252 L705 272" class="conn"/>
+  <!-- m.funded → email -->
+  <path d="M615 164 L705 132" class="conn"/>
+  <!-- m.submitted → email -->
+  <path d="M615 208 L705 132" class="conn"/>
+  <!-- m.approved → email -->
+  <path d="M615 252 L705 132" class="conn"/>
+  <!-- m.released → email, slack, xrpl, db -->
+  <path d="M615 296 L705 132" class="conn" stroke="#C9A84C" opacity="0.5"/>
+  <path d="M615 296 L705 202" class="conn" stroke="#C9A84C" opacity="0.5"/>
+  <path d="M615 296 L705 272" class="conn" stroke="#C9A84C" opacity="0.5"/>
+  <path d="M615 296 L705 342" class="conn" stroke="#C9A84C" opacity="0.5"/>
+  <!-- m.disputed → email, slack -->
+  <path d="M615 340 L705 132" class="conn"/>
+  <path d="M615 340 L705 202" class="conn"/>
+  <!-- dispute.opened → panel, email -->
+  <path d="M465 396 L705 412" class="conn"/>
+  <path d="M465 396 L705 132" class="conn"/>
+  <!-- dispute.escalated → email, slack -->
+  <path d="M465 440 L705 132" class="conn"/>
+  <path d="M465 440 L705 202" class="conn"/>
+  <!-- dispute.resolved → payout, email, db -->
+  <path d="M465 484 L705 482" class="conn"/>
+  <path d="M465 484 L705 132" class="conn"/>
+  <path d="M465 484 L705 272" class="conn"/>
+  <!-- mcc.minted → xrpl, email, db -->
+  <path d="M465 536 L705 342" class="conn"/>
+  <path d="M465 536 L705 132" class="conn"/>
+  <path d="M465 536 L705 272" class="conn"/>
+  <!-- escrow.expiring → email, slack -->
+  <path d="M465 584 L705 132" class="conn"/>
+  <path d="M465 584 L705 202" class="conn"/>
+
+  <text x="600" y="730" font-size="10" fill="#8B949E" text-anchor="middle" opacity="0.4">StudioLedger n8n Events — Zoom with Cmd+/- for full detail — All 14 events mapped</text>
+</svg>

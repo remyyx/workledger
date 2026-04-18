@@ -1,0 +1,177 @@
+---
+title: StudioLedger — Database Schema (15 Migrations)
+---
+erDiagram
+  users {
+    uuid id PK
+    text email UK
+    text display_name
+    text role "creator | marketplace"
+    text xrpl_address
+    text encrypted_seed
+    timestamp created_at
+  }
+
+  contracts {
+    uuid id PK
+    uuid creator_id FK
+    uuid marketplace_id FK
+    text title
+    text status "draft|funded|active|completed|disputed|cancelled"
+    text template "fixed_price | retainer | hourly"
+    text currency "XRP | RLUSD"
+    numeric total_amount
+    timestamp created_at
+  }
+
+  milestones {
+    uuid id PK
+    uuid contract_id FK
+    int sequence
+    text title
+    text status "pending|funded|submitted|approved|released|disputed"
+    numeric amount
+    text currency
+    text escrow_tx_hash
+    text deliverable_hash
+    text deliverable_media_url
+    timestamp released_at
+  }
+
+  contract_messages {
+    uuid id PK
+    uuid contract_id FK
+    uuid sender_id FK
+    text type "system|chat|deliverable_submit|approval|revision_request|release"
+    text content
+    jsonb metadata
+    timestamp created_at
+  }
+
+  nft_registry {
+    uuid id PK
+    uuid contract_id FK
+    uuid milestone_id FK
+    text nft_token_id
+    int taxon "1=Work|2=License|3=Access|4=Client"
+    text owner
+    text mint_tx_hash
+    text metadata_cid
+    timestamp created_at
+  }
+
+  dispute_events {
+    uuid id PK
+    uuid contract_id FK
+    uuid milestone_id FK
+    uuid initiated_by FK
+    text reason
+    text status
+    timestamp created_at
+  }
+
+  project_briefs {
+    uuid id PK
+    uuid marketplace_id FK
+    text title
+    text description
+    numeric budget
+    date deadline
+    timestamp created_at
+  }
+
+  proposals {
+    uuid id PK
+    uuid brief_id FK
+    uuid counterparty_id FK
+    text direction "cr_to_mk | mk_to_cr"
+    jsonb terms
+    text status "pending|accepted|rejected|countered"
+    timestamp created_at
+  }
+
+  proposal_rounds {
+    uuid id PK
+    uuid proposal_id FK
+    int round_number
+    jsonb changes
+    uuid proposed_by FK
+    timestamp created_at
+  }
+
+  admin_accounts {
+    uuid id PK
+    text email UK "CHECK @studioledger.ai"
+    text display_name
+    text admin_role "boss|dev|accounting|commercial|protocol"
+    text password_hash "bcrypt"
+    boolean is_active
+    uuid created_by FK
+    timestamp last_login_at
+  }
+
+  admin_sessions {
+    uuid id PK
+    uuid admin_id FK
+    text token_hash UK "SHA-256"
+    text ip_address
+    text user_agent
+    timestamp expires_at
+  }
+
+  admin_audit_log {
+    uuid id PK
+    uuid admin_id FK
+    text action
+    text target_type
+    uuid target_id
+    jsonb details
+    text ip_address
+    timestamp created_at
+  }
+
+  admin_permissions {
+    uuid id PK
+    text admin_role
+    text resource "17 resources"
+    boolean can_read
+    boolean can_write
+    boolean can_delete
+  }
+
+  dispute_arbitrators {
+    uuid id PK
+    uuid user_id FK UK
+    text status "pending|active|suspended|revoked"
+    jsonb skill_domains
+    int mcc_count
+    int cases_completed
+    uuid approved_by FK
+  }
+
+  dispute_panels {
+    uuid id PK
+    uuid dispute_id FK
+    uuid arbitrator_id FK
+    text vote "creator|marketplace|split|NULL"
+    text vote_reason
+    timestamp voted_at
+  }
+
+  %% Relationships
+  users ||--o{ contracts : "creates (as creator)"
+  users ||--o{ contracts : "commissions (as marketplace)"
+  contracts ||--|{ milestones : contains
+  contracts ||--o{ contract_messages : has
+  contracts ||--o{ nft_registry : produces
+  contracts ||--o{ dispute_events : may_have
+  milestones ||--o{ nft_registry : "mints T1+T4"
+  users ||--o{ project_briefs : posts
+  project_briefs ||--o{ proposals : receives
+  proposals ||--|{ proposal_rounds : negotiates
+  admin_accounts ||--o{ admin_sessions : authenticates
+  admin_accounts ||--o{ admin_audit_log : logs
+  admin_accounts ||--o{ dispute_arbitrators : approves
+  dispute_events ||--o{ dispute_panels : assigned
+  dispute_arbitrators ||--o{ dispute_panels : serves
+  users ||--o| dispute_arbitrators : "may become"

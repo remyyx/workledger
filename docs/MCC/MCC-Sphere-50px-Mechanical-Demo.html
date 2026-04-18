@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCC 50px Mechanical Sphere - Preview</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0a0e27 0%, #16213e 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #00ff88;
+            margin-bottom: 40px;
+            text-align: center;
+            font-size: 28px;
+            text-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+        }
+
+        .section {
+            margin-bottom: 50px;
+        }
+
+        .section-title {
+            color: #00ff88;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .grid-spheres {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 20px;
+        }
+
+        .sphere-card {
+            background: rgba(22, 33, 62, 0.8);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .sphere-card:hover {
+            border-color: rgba(0, 255, 136, 0.6);
+            box-shadow: 0 0 25px rgba(0, 255, 136, 0.25);
+            transform: translateY(-3px);
+        }
+
+        .sphere-label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .comparison {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+            padding-top: 40px;
+            border-top: 1px solid rgba(0, 255, 136, 0.2);
+        }
+
+        .comparison-item {
+            text-align: center;
+        }
+
+        .comparison-item h3 {
+            color: #00ff88;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .canvas-container {
+            background: rgba(22, 33, 62, 0.8);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        canvas {
+            display: block;
+            image-rendering: crisp-edges;
+        }
+
+        .mcc-card-full {
+            background: rgba(22, 33, 62, 0.8);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            border-radius: 10px;
+            padding: 16px;
+            display: flex;
+            gap: 16px;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .mcc-card-full:hover {
+            border-color: rgba(0, 255, 136, 0.5);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.15);
+        }
+
+        .mcc-icon {
+            flex-shrink: 0;
+        }
+
+        .mcc-content {
+            flex: 1;
+        }
+
+        .mcc-title {
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .mcc-subtitle {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+
+        .mcc-tags {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            background: rgba(0, 255, 136, 0.1);
+            color: #00ff88;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 40px;
+            padding-top: 40px;
+            border-top: 1px solid rgba(0, 255, 136, 0.2);
+        }
+
+        .feature {
+            background: rgba(22, 33, 62, 0.6);
+            border: 1px solid rgba(0, 255, 136, 0.15);
+            border-radius: 6px;
+            padding: 12px;
+        }
+
+        .feature-icon {
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+
+        .feature-title {
+            color: #00ff88;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .feature-desc {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 11px;
+            line-height: 1.4;
+        }
+
+        .note {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 12px;
+            margin-top: 30px;
+            padding: 15px;
+            background: rgba(0, 255, 136, 0.05);
+            border-left: 2px solid rgba(0, 255, 136, 0.3);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚙️ MCC 50px Mechanical Rotating Sphere</h1>
+
+        <div class="section">
+            <div class="section-title">All Skill Types</div>
+            <div class="grid-spheres">
+                <div class="sphere-card">
+                    <canvas id="sphere-design" width="50" height="50"></canvas>
+                    <div class="sphere-label">Design</div>
+                </div>
+                <div class="sphere-card">
+                    <canvas id="sphere-code" width="50" height="50"></canvas>
+                    <div class="sphere-label">Development</div>
+                </div>
+                <div class="sphere-card">
+                    <canvas id="sphere-writing" width="50" height="50"></canvas>
+                    <div class="sphere-label">Writing</div>
+                </div>
+                <div class="sphere-card">
+                    <canvas id="sphere-marketing" width="50" height="50"></canvas>
+                    <div class="sphere-label">Marketing</div>
+                </div>
+                <div class="sphere-card">
+                    <canvas id="sphere-business" width="50" height="50"></canvas>
+                    <div class="sphere-label">Business</div>
+                </div>
+                <div class="sphere-card">
+                    <canvas id="sphere-media" width="50" height="50"></canvas>
+                    <div class="sphere-label">Media</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Size Comparison</div>
+            <div class="comparison">
+                <div class="comparison-item">
+                    <h3>25px (Minimal)</h3>
+                    <div class="canvas-container">
+                        <canvas id="sphere-25" width="25" height="25"></canvas>
+                    </div>
+                </div>
+                <div class="comparison-item">
+                    <h3>50px (Standard)</h3>
+                    <div class="canvas-container">
+                        <canvas id="sphere-50" width="50" height="50"></canvas>
+                    </div>
+                </div>
+                <div class="comparison-item">
+                    <h3>100px (Large)</h3>
+                    <div class="canvas-container">
+                        <canvas id="sphere-100" width="100" height="100"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">In Context: MCC Card</div>
+            <div class="mcc-card-full">
+                <div class="mcc-icon">
+                    <canvas id="sphere-card" width="50" height="50"></canvas>
+                </div>
+                <div class="mcc-content">
+                    <div class="mcc-title">Oreo Brand Creative Direction</div>
+                    <div class="mcc-subtitle">Alice Martin • 5.0 ⭐ • 5,616.72 RUSD • Mar 10, 2025</div>
+                    <div class="mcc-tags">
+                        <span class="tag">#Design</span>
+                        <span class="tag">#Branding</span>
+                        <span class="tag">#VisualCommunication</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon">⚙️</div>
+                <div class="feature-title">Mechanical</div>
+                <div class="feature-desc">Wireframe geometric sphere with rotating segments</div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🎨</div>
+                <div class="feature-title">Skill Colors</div>
+                <div class="feature-desc">6 color variations per skill category</div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">⚡</div>
+                <div class="feature-title">60fps</div>
+                <div class="feature-desc">Smooth animation, ultra-lightweight</div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">📐</div>
+                <div class="feature-title">Scalable</div>
+                <div class="feature-desc">Works at 25px, 50px, 100px, or any size</div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🔧</div>
+                <div class="feature-title">Futuristic</div>
+                <div class="feature-desc">Tech-forward visual aesthetic</div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">💨</div>
+                <div class="feature-title">~3KB</div>
+                <div class="feature-desc">Minified component size</div>
+            </div>
+        </div>
+
+        <div class="note">
+            ℹ️ <strong>Design:</strong> Wireframe sphere with latitude/longitude lines. Rotating inner ring shows continuous rotation. Central bright core for focal point. Horizontal elliptical lines create depth illusion. Skill type determines color (Design = matrix green, Code = cyan, Writing = magenta, etc.)
+        </div>
+    </div>
+
+    <script>
+        /**
+         * 50px Mechanical Rotating Sphere
+         */
+
+        class MechanicalSphere {
+            constructor(canvasId, color) {
+                this.canvas = document.getElementById(canvasId);
+                this.ctx = this.canvas.getContext('2d');
+                this.color = color;
+                this.rotation = 0;
+                this.animate();
+            }
+
+            draw() {
+                const size = this.canvas.width;
+                const centerX = size / 2;
+                const centerY = size / 2;
+                const radius = size / 3;
+
+                // Clear with fade
+                this.ctx.fillStyle = 'rgba(10, 14, 39, 0.6)';
+                this.ctx.fillRect(0, 0, size, size);
+
+                // Wireframe style
+                this.ctx.strokeStyle = this.color;
+                this.ctx.lineWidth = size > 60 ? 1.2 : 0.8;
+                this.ctx.globalAlpha = 0.7;
+
+                // Latitude lines (horizontal ellipses)
+                const latLines = 5;
+                for (let i = 0; i < latLines; i++) {
+                    const lat = (i / latLines - 0.5) * Math.PI;
+                    const y = centerY + Math.sin(lat) * radius;
+                    const ellipseRadius = Math.cos(lat) * radius;
+
+                    this.ctx.beginPath();
+                    this.ctx.ellipse(
+                        centerX,
+                        y,
+                        ellipseRadius,
+                        ellipseRadius * 0.25,
+                        0,
+                        0,
+                        Math.PI * 2
+                    );
+                    this.ctx.stroke();
+                }
+
+                // Longitude lines with rotation
+                const longLines = 6;
+                for (let i = 0; i < longLines; i++) {
+                    const angle = (i / longLines) * Math.PI + this.rotation;
+                    const cos = Math.cos(angle);
+                    const sin = Math.sin(angle);
+
+                    // Vertical great circle
+                    this.ctx.beginPath();
+                    for (let j = 0; j <= 20; j++) {
+                        const lat = (j / 20 - 0.5) * Math.PI;
+                        const y = centerY + Math.sin(lat) * radius;
+                        const x = centerX + cos * Math.cos(lat) * radius;
+                        if (j === 0) this.ctx.moveTo(x, y);
+                        else this.ctx.lineTo(x, y);
+                    }
+                    this.ctx.stroke();
+                }
+
+                // Rotating inner ring
+                this.ctx.globalAlpha = 0.5;
+                this.ctx.beginPath();
+                const innerRadius = radius * 0.65;
+                for (let i = 0; i < 8; i++) {
+                    const angle = (i / 8) * Math.PI * 2 + this.rotation * 2;
+                    const x = centerX + Math.cos(angle) * innerRadius;
+                    const y = centerY + Math.sin(angle) * innerRadius;
+                    if (i === 0) this.ctx.moveTo(x, y);
+                    else this.ctx.lineTo(x, y);
+                }
+                this.ctx.closePath();
+                this.ctx.stroke();
+
+                // Bright core
+                this.ctx.globalAlpha = 0.8;
+                this.ctx.fillStyle = this.color;
+                this.ctx.beginPath();
+                this.ctx.arc(centerX, centerY, size / 20, 0, Math.PI * 2);
+                this.ctx.fill();
+
+                this.ctx.globalAlpha = 1;
+                this.rotation += 0.035;
+            }
+
+            animate = () => {
+                this.draw();
+                requestAnimationFrame(this.animate);
+            };
+        }
+
+        // Color map
+        const colors = {
+            design: '#00ff88',
+            code: '#00ccff',
+            writing: '#ff88ff',
+            marketing: '#ffaa00',
+            business: '#00ff88',
+            media: '#ff3366',
+        };
+
+        // Initialize all spheres
+        new MechanicalSphere('sphere-design', colors.design);
+        new MechanicalSphere('sphere-code', colors.code);
+        new MechanicalSphere('sphere-writing', colors.writing);
+        new MechanicalSphere('sphere-marketing', colors.marketing);
+        new MechanicalSphere('sphere-business', colors.business);
+        new MechanicalSphere('sphere-media', colors.media);
+
+        // Size comparisons
+        new MechanicalSphere('sphere-25', colors.design);
+        new MechanicalSphere('sphere-50', colors.design);
+        new MechanicalSphere('sphere-100', colors.design);
+        new MechanicalSphere('sphere-card', colors.design);
+    </script>
+</body>
+</html>

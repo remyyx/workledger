@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StudioLedger — n8n Event Flow</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0D1117; color: #E6EDF3; font-family: system-ui, sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
+  .header { padding: 16px 24px; border-bottom: 1px solid #30363D; display: flex; align-items: baseline; gap: 10px; }
+  .header h1 { font-size: 20px; font-weight: 800; color: #C9A84C; }
+  .header span { font-size: 12px; color: #8B949E; }
+  .container { flex: 1; display: flex; justify-content: center; align-items: flex-start; padding: 24px; overflow: auto; }
+  .mermaid { width: 100%; max-width: 1200px; }
+  .footer { text-align: center; padding: 12px; font-size: 10px; color: #8B949E40; border-top: 1px solid #30363D; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>StudioLedger</h1>
+  <span>n8n Event Architecture — 14 Event Types</span>
+</div>
+<div class="container">
+<pre class="mermaid">
+flowchart LR
+  subgraph Triggers["Trigger Sources"]
+    auth["POST /api/auth"]
+    contracts["POST /api/contracts"]
+    milestones["POST /api/milestones/seq"]
+    release["releaseMilestoneAndAdvance"]
+    mintFn["mintWorkCredentialOnRelease"]
+    adminAction["Admin Action"]
+    schedule["Schedule 1h"]
+  end
+
+  subgraph Events["14 Event Types"]
+    e1["user.registered"]
+    e2["contract.created"]
+    e3["contract.funded"]
+    e4["contract.completed"]
+    e5["milestone.funded"]
+    e6["milestone.submitted"]
+    e7["milestone.approved"]
+    e8["milestone.released"]
+    e9["milestone.disputed"]
+    e10["dispute.opened"]
+    e11["dispute.escalated"]
+    e12["dispute.resolved"]
+    e13["mcc.minted"]
+    e14["escrow.expiring"]
+  end
+
+  subgraph Actions["Downstream Actions"]
+    email["Email Notifications"]
+    slack["Slack Channels"]
+    db["Supabase Updates"]
+    verify["XRPL Verification"]
+    panel["Panel Assignment"]
+    payout["Execute Payout"]
+  end
+
+  auth --> e1
+  contracts --> e2
+  milestones --> e3
+  milestones --> e5
+  milestones --> e6
+  milestones --> e7
+  milestones --> e9
+  release --> e4
+  release --> e8
+  mintFn --> e13
+  milestones --> e10
+  adminAction --> e11
+  adminAction --> e12
+  schedule --> e14
+
+  e1 --> email
+  e2 --> email
+  e2 --> slack
+  e3 --> email
+  e3 --> verify
+  e4 --> email
+  e4 --> slack
+  e4 --> db
+  e5 --> email
+  e6 --> email
+  e7 --> email
+  e8 --> email
+  e8 --> slack
+  e8 --> verify
+  e8 --> db
+  e9 --> email
+  e9 --> slack
+  e10 --> panel
+  e10 --> email
+  e11 --> email
+  e11 --> slack
+  e12 --> payout
+  e12 --> email
+  e12 --> db
+  e13 --> verify
+  e13 --> email
+  e13 --> db
+  e14 --> email
+  e14 --> slack
+
+  classDef trigger fill:#1a2744,stroke:#3b82f6,color:#E6EDF3
+  classDef event fill:#2d1f0a,stroke:#c9a84c,color:#E6EDF3
+  classDef action fill:#0a2e1f,stroke:#10b981,color:#E6EDF3
+
+  class auth,contracts,milestones,release,mintFn,adminAction,schedule trigger
+  class e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14 event
+  class email,slack,db,verify,panel,payout action
+</pre>
+</div>
+<div class="footer">StudioLedger n8n Events — fire-and-forget webhooks from src/lib/n8n/client.ts</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.0/mermaid.min.js"></script>
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+      darkMode: true,
+      background: '#0D1117',
+      primaryColor: '#1e3a5f',
+      primaryTextColor: '#E6EDF3',
+      primaryBorderColor: '#C9A84C',
+      lineColor: '#C9A84C',
+      secondaryColor: '#2d1f5e',
+      tertiaryColor: '#161B22',
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '13px',
+    },
+    flowchart: {
+      curve: 'basis',
+      padding: 20,
+      htmlLabels: true,
+      useMaxWidth: true,
+    },
+  });
+</script>
+</body>
+</html>

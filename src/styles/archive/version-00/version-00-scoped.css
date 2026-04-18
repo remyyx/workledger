@@ -1,0 +1,99 @@
+/**
+ * Version 00 design — scoped for /version-00 route only.
+ * Dark mode (dashboard reference). Apply to wrapper .version-00-preview.
+ */
+
+.version-00-preview {
+  /* Dark mode tokens */
+  --bg: #000000;
+  --bg-surface: #161616;
+  --bg-elevated: #222222;
+  --bg-inset: #0A0A0A;
+  --border: rgba(255, 255, 255, 0.12);
+  --text: #F5F5F5;
+  --text-secondary: #B0B0B0;
+  --text-tertiary: #707070;
+  --text-muted: #484848;
+  --separator: rgba(255, 255, 255, 0.10);
+  --hover: rgba(255, 255, 255, 0.06);
+  --active: rgba(255, 255, 255, 0.10);
+  --escrow: #FF8C1A;
+  --escrow-light: #FFAA4D;
+  --escrow-bg: rgba(255, 140, 26, 0.14);
+  --escrow-bg-strong: rgba(255, 140, 26, 0.26);
+  --status-active: #00FF47;
+  --status-active-bg: rgba(0, 255, 71, 0.16);
+  --status-completed: #3D8EFF;
+  --status-completed-bg: rgba(61, 142, 255, 0.14);
+  --status-disputed: #FF2D2D;
+  --status-disputed-bg: rgba(255, 45, 45, 0.14);
+  --status-submitted: #8B45FF;
+  --status-submitted-bg: rgba(139, 69, 255, 0.14);
+  --status-released: #00FF55;
+  --status-released-bg: rgba(0, 255, 85, 0.14);
+  --accent-warm: #FF9955;
+  --accent-warm-bg: rgba(255, 153, 85, 0.22);
+  --accent-green: #55FF80;
+  --accent-green-bg: rgba(85, 255, 128, 0.22);
+  --accent-blue: #66AAFF;
+  --accent-blue-bg: rgba(102, 170, 255, 0.22);
+  --accent-purple: #FF66BB;
+  --accent-purple-bg: rgba(255, 102, 187, 0.22);
+  --scrollbar: #333333;
+  --scrollbar-hover: #454545;
+
+  background-color: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-family: var(--font-dm-sans), system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.version-00-preview .btn-primary {
+  font-weight: 500;
+  padding: 0.625rem 1rem;
+  border-radius: 0.75rem;
+  transition: all 0.2s;
+  background-color: var(--text);
+  color: var(--bg);
+  border: none;
+  cursor: pointer;
+}
+.version-00-preview .btn-primary:hover { opacity: 0.85; }
+
+.version-00-preview .sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  transition: all 0.2s;
+  font-size: 1rem;
+  font-weight: 500;
+  position: relative;
+  color: var(--text-tertiary);
+}
+.version-00-preview .sidebar-link:hover {
+  color: #0D0D0D;
+  background-color: rgba(255, 255, 255, 0.95);
+  filter: drop-shadow(0 0 6px rgba(0,0,0,0.6)) drop-shadow(0 0 14px rgba(0,0,0,0.4));
+  text-shadow: 0 0 8px rgba(0,0,0,0.4);
+}
+.version-00-preview .sidebar-link-active,
+.version-00-preview .sidebar-link-active:hover {
+  color: #FFFFFF;
+  background-color: rgba(255, 255, 255, 0.06);
+  filter: drop-shadow(0 0 4px rgba(255,255,255,0.5)) drop-shadow(0 0 10px rgba(255,255,255,0.3));
+  text-shadow: none;
+}
+.version-00-preview .sidebar-link-active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 1.5rem;
+  border-radius: 0 4px 4px 0;
+  background-color: var(--text);
+}

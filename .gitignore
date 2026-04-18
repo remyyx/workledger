@@ -1,0 +1,77 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Next.js
+.next/
+out/
+
+# Build
+build/
+dist/
+
+# Environment (NEVER commit secrets)
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Supabase
+supabase/.temp/
+
+# Internal strategy & memory (not for public repo)
+METACONTEXT.md
+CLAUDE.md
+
+# Legal & company documents (confidential)
+ENTREPRISE/
+enterprise-information/
+
+# Temporary files
+*.tmp
+*.~lock.*
+*.pages
+*.psd
+
+# Pitch decks & internal docs
+WorkLedger_Pitch_Deck.pptx
+StudioLedger_Competitor_Analysis.xlsx
+StudioLedger_ToS_Analysis.md
+
+# Landing page experiments (keep only production)
+landing-v1-*.html
+landing-v2-*.html
+landing-v3-*.html
+landing-v5-*.html
+landing-v6-*.html
+landing-v6-*.css
+landing-v7-*.html
+landing-v7-*.md
+
+# Screenshots
+Screenshot *.png
+
+# Claude worktrees
+.claude/worktrees/

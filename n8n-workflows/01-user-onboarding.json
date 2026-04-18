@@ -1,0 +1,124 @@
+{
+  "name": "User Onboarding",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "user.registered",
+        "options": {
+          "responseMode": "onReceived"
+        }
+      },
+      "id": "a1b2c3d4-1111-4000-8000-000000000001",
+      "name": "Webhook: user.registered",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300],
+      "webhookId": "user-registered"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract user data from webhook payload\nconst payload = $input.first().json.body || $input.first().json;\n\nreturn [{\n  json: {\n    userId: payload.data?.userId || 'unknown',\n    email: payload.data?.email || '',\n    displayName: payload.data?.displayName || '',\n    role: payload.data?.role || 'creator',\n    xrplAddress: payload.data?.xrplAddress || '',\n    event: payload.event || 'user.registered',\n    timestamp: payload.timestamp || new Date().toISOString(),\n    hasWallet: !!payload.data?.xrplAddress\n  }\n}];"
+      },
+      "id": "a1b2c3d4-1111-4000-8000-000000000002",
+      "name": "Parse User Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "check-email",
+              "leftValue": "={{ $json.email }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "isNotEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "a1b2c3d4-1111-4000-8000-000000000003",
+      "name": "Has Email?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [700, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Send welcome email placeholder\n// TODO: Replace with SendGrid / Resend node when credentials are configured\nconst user = $input.first().json;\n\nconsole.log(`[StudioLedger] Welcome email queued for: ${user.email}`);\nconsole.log(`[StudioLedger] User: ${user.displayName} (${user.role})`);\nconsole.log(`[StudioLedger] XRPL Address: ${user.xrplAddress}`);\n\nreturn [{\n  json: {\n    ...user,\n    welcomeEmailSent: true,\n    onboardingStep: 'welcome_email',\n    message: `Welcome email queued for ${user.email}`\n  }\n}];"
+      },
+      "id": "a1b2c3d4-1111-4000-8000-000000000004",
+      "name": "Send Welcome Email",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [940, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// No email available — log and continue\nconst user = $input.first().json;\n\nconsole.log(`[StudioLedger] No email for user ${user.userId} — skipping welcome email`);\n\nreturn [{\n  json: {\n    ...user,\n    welcomeEmailSent: false,\n    onboardingStep: 'no_email_skip',\n    message: `No email available for user ${user.userId}`\n  }\n}];"
+      },
+      "id": "a1b2c3d4-1111-4000-8000-000000000005",
+      "name": "Log: No Email",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [940, 420]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Onboarding complete — compile summary\nconst user = $input.first().json;\n\nconst summary = {\n  userId: user.userId,\n  email: user.email,\n  displayName: user.displayName,\n  role: user.role,\n  xrplAddress: user.xrplAddress,\n  welcomeEmailSent: user.welcomeEmailSent || false,\n  onboardedAt: new Date().toISOString(),\n  status: 'onboarding_complete'\n};\n\nconsole.log('[StudioLedger] Onboarding complete:', JSON.stringify(summary));\n\nreturn [{ json: summary }];"
+      },
+      "id": "a1b2c3d4-1111-4000-8000-000000000006",
+      "name": "Onboarding Complete",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1180, 300]
+    }
+  ],
+  "connections": {
+    "Webhook: user.registered": {
+      "main": [
+        [{ "node": "Parse User Data", "type": "main", "index": 0 }]
+      ]
+    },
+    "Parse User Data": {
+      "main": [
+        [{ "node": "Has Email?", "type": "main", "index": 0 }]
+      ]
+    },
+    "Has Email?": {
+      "main": [
+        [{ "node": "Send Welcome Email", "type": "main", "index": 0 }],
+        [{ "node": "Log: No Email", "type": "main", "index": 0 }]
+      ]
+    },
+    "Send Welcome Email": {
+      "main": [
+        [{ "node": "Onboarding Complete", "type": "main", "index": 0 }]
+      ]
+    },
+    "Log: No Email": {
+      "main": [
+        [{ "node": "Onboarding Complete", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    { "name": "studioledger" },
+    { "name": "onboarding" }
+  ]
+}

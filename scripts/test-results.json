@@ -1,0 +1,70 @@
+{
+  "timestamp": "2026-03-20T01:01:58.304Z",
+  "network": "testnet",
+  "wallets": {
+    "marketplace": "rh8qoCgnc9Gk6fFsik47KwzczDEPz1o9ti",
+    "creator": "r4tCsPsLxSGDGWxpRNNuyNFk68ZEEd5UT",
+    "platform": "rwNpys8FSHLvcK6BxpzRvAEgRDQNShC7YP"
+  },
+  "contract": {
+    "title": "Brand Refresh Package",
+    "totalAmount": 150,
+    "currency": "XRP",
+    "milestones": [
+      {
+        "seq": 1,
+        "title": "Brand Identity Design",
+        "amount": "50"
+      },
+      {
+        "seq": 2,
+        "title": "Website Mockup Delivery",
+        "amount": "75"
+      },
+      {
+        "seq": 3,
+        "title": "Final Assets & Handoff",
+        "amount": "25"
+      }
+    ]
+  },
+  "escrows": [
+    {
+      "milestoneSeq": 1,
+      "txHash": "011CDDC4D558585FD86DFEA9D16A89BF63AA35C56F4ABB3A2B132A2B33999199",
+      "escrowSequence": 15818721
+    },
+    {
+      "milestoneSeq": 2,
+      "txHash": "A6ADF84D014C0A42C5C960DDE18E7787F68AEE167F39DC1A501BBB357D6026DA",
+      "escrowSequence": 15818722
+    },
+    {
+      "milestoneSeq": 3,
+      "txHash": "5A797849B65DE3C98D4C940407F56BAFB38CEB17FF5D58ACF2DAED79EAF04998",
+      "escrowSequence": 15818725
+    }
+  ],
+  "nfts": [
+    {
+      "seq": 1,
+      "nftTokenId": "0008000065302E54C0F503FE0184E36992D5ECB2A610B76C2A7D1A7D00F15FE1",
+      "mintTx": "5D9C1ABC85E053D12DA7146D26BDA4B2A840877EC511C7718C29B2B38EC1845C"
+    },
+    {
+      "seq": 2,
+      "nftTokenId": "0008000065302E54C0F503FE0184E36992D5ECB2A610B76C4162EB7C00F15FE2",
+      "mintTx": "73733CCF9BD75ABCA4C0E939CDF7232F90C88E8018F327DE0C4A89B03556B5C0"
+    },
+    {
+      "seq": 3,
+      "nftTokenId": "0008000065302E54C0F503FE0184E36992D5ECB2A610B76C5848BC7F00F15FE3",
+      "mintTx": "704D1575A9D827ECB4F3424779084B982A445F590AA0B195DB236780601E5C1A"
+    }
+  ],
+  "finalBalances": {
+    "marketplace": "24.11501",
+    "creator": "175",
+    "platform": "100.883577"
+  }
+}

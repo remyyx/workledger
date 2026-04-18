@@ -1,0 +1,114 @@
+{
+  "name": "MCC Historic",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "mcc.historic.recalc",
+        "options": {
+          "responseMode": "onReceived"
+        }
+      },
+      "id": "e5f6g7h8-5555-4000-8000-000000000001",
+      "name": "Webhook: historic.recalc",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300],
+      "webhookId": "mcc-historic-recalc"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse MCC historic recalculation request\nconst payload = $input.first().json.body || $input.first().json;\nconst d = payload.data || {};\n\nreturn [{\n  json: {\n    event: 'mcc.historic.recalc',\n    userId: d.userId,\n    xrplAddress: d.xrplAddress,\n    trigger: d.trigger || 'manual',\n    currentMccCount: d.currentMccCount || 0,\n    currentScore: d.currentScore || 0,\n    timestamp: payload.timestamp\n  }\n}];"
+      },
+      "id": "e5f6g7h8-5555-4000-8000-000000000002",
+      "name": "Parse Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Calculate craft standing based on MCC historic record\n// Standing model (placeholder — refine with real data):\n//   Base: 1 point per MCC credential\n//   Bonus: +0.5 per unique skill domain\n//   Bonus: +2 for dispute-free record\n//   Penalty: -5 per lost dispute\nconst data = $input.first().json;\n\nconst mccCount = data.currentMccCount || 0;\nconst baseScore = mccCount * 1;\nconst uniqueDomainBonus = 0; // TODO: calculate from MCC metadata\nconst disputeFreeBonus = 2; // TODO: check dispute history\nconst disputePenalty = 0; // TODO: count lost disputes\n\nconst newScore = Math.max(0, baseScore + uniqueDomainBonus + disputeFreeBonus - disputePenalty);\n\n// Tier calculation\nlet tier = 'Bronze';\nif (newScore >= 50) tier = 'Diamond';\nelse if (newScore >= 25) tier = 'Platinum';\nelse if (newScore >= 10) tier = 'Gold';\nelse if (newScore >= 5) tier = 'Silver';\n\nconsole.log(`[StudioLedger] MCC HISTORIC RECALC: User ${data.userId}`);\nconsole.log(`[StudioLedger] MCCs: ${mccCount}, Standing: ${data.currentScore} -> ${newScore}`);\nconsole.log(`[StudioLedger] Tier: ${tier}`);\n\nreturn [{\n  json: {\n    userId: data.userId,\n    xrplAddress: data.xrplAddress,\n    previousScore: data.currentScore,\n    newScore,\n    tier,\n    mccCount,\n    components: {\n      baseScore,\n      uniqueDomainBonus,\n      disputeFreeBonus,\n      disputePenalty\n    },\n    qualifiesForArbitration: newScore >= 10 && mccCount >= 5,\n    calculatedAt: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "e5f6g7h8-5555-4000-8000-000000000003",
+      "name": "Calculate Standing",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [720, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "standing-changed",
+              "leftValue": "={{ $json.newScore }}",
+              "rightValue": "={{ $json.previousScore }}",
+              "operator": {
+                "type": "number",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "e5f6g7h8-5555-4000-8000-000000000004",
+      "name": "Standing Changed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [960, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Standing changed — update DB and notify user\nconst data = $input.first().json;\n\nconsole.log(`[StudioLedger] STANDING UPDATED: ${data.userId}`);\nconsole.log(`[StudioLedger] ${data.previousScore} -> ${data.newScore} (${data.tier})`);\nif (data.qualifiesForArbitration) {\n  console.log(`[StudioLedger] User now qualifies for arbitration panels!`);\n}\n\n// TODO: Update Supabase users.craft_standing\n// TODO: Send notification if tier changed\n\nreturn [{\n  json: {\n    ...data,\n    updated: true,\n    message: `MCC historic updated: ${data.previousScore} -> ${data.newScore} (${data.tier})`\n  }\n}];"
+      },
+      "id": "e5f6g7h8-5555-4000-8000-000000000005",
+      "name": "Update & Notify",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1200, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// No change — skip\nconst data = $input.first().json;\nconsole.log(`[StudioLedger] Standing unchanged for ${data.userId}: ${data.newScore} (${data.tier})`);\nreturn [{ json: { ...data, updated: false, message: 'No standing change' } }];"
+      },
+      "id": "e5f6g7h8-5555-4000-8000-000000000006",
+      "name": "Skip: No Change",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1200, 420]
+    }
+  ],
+  "connections": {
+    "Webhook: historic.recalc": {
+      "main": [[{ "node": "Parse Request", "type": "main", "index": 0 }]]
+    },
+    "Parse Request": {
+      "main": [[{ "node": "Calculate Standing", "type": "main", "index": 0 }]]
+    },
+    "Calculate Standing": {
+      "main": [[{ "node": "Standing Changed?", "type": "main", "index": 0 }]]
+    },
+    "Standing Changed?": {
+      "main": [
+        [{ "node": "Update & Notify", "type": "main", "index": 0 }],
+        [{ "node": "Skip: No Change", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    { "name": "studioledger" },
+    { "name": "historic" },
+    { "name": "mcc" }
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "name": "Dispute Escalation",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "dispute.opened",
+        "options": {
+          "responseMode": "onReceived"
+        }
+      },
+      "id": "c3d4e5f6-3333-4000-8000-000000000001",
+      "name": "Webhook: dispute.opened",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300],
+      "webhookId": "dispute-opened"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse dispute event\nconst payload = $input.first().json.body || $input.first().json;\nconst d = payload.data || {};\n\nreturn [{\n  json: {\n    event: 'dispute.opened',\n    disputeId: d.disputeId,\n    contractId: d.contractId,\n    milestoneSeq: d.milestoneSeq,\n    filedBy: d.filedBy,\n    reason: d.reason,\n    creatorId: d.creatorId,\n    marketplaceId: d.marketplaceId,\n    amount: d.amount,\n    currency: d.currency,\n    timestamp: payload.timestamp,\n    // 7-day direct resolution window\n    directResolutionDeadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()\n  }\n}];"
+      },
+      "id": "c3d4e5f6-3333-4000-8000-000000000002",
+      "name": "Parse Dispute",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Notify both parties about the dispute\nconst data = $input.first().json;\n\nconsole.log(`[StudioLedger] DISPUTE OPENED: ${data.disputeId}`);\nconsole.log(`[StudioLedger] Contract: ${data.contractId}, Milestone: ${data.milestoneSeq}`);\nconsole.log(`[StudioLedger] Filed by: ${data.filedBy}`);\nconsole.log(`[StudioLedger] Reason: ${data.reason}`);\nconsole.log(`[StudioLedger] Amount at stake: ${data.amount} ${data.currency}`);\nconsole.log(`[StudioLedger] Direct resolution deadline: ${data.directResolutionDeadline}`);\n\nreturn [{\n  json: {\n    ...data,\n    notification: 'dispute_opened',\n    tier: 1,\n    tierName: 'Direct Resolution',\n    message: `Dispute opened — 7-day direct resolution window started`\n  }\n}];"
+      },
+      "id": "c3d4e5f6-3333-4000-8000-000000000003",
+      "name": "Notify: Dispute Filed",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [720, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Start 7-day timer for Tier 1 (Direct Resolution)\nconst data = $input.first().json;\n\nconsole.log(`[StudioLedger] TIER 1 TIMER: Direct resolution window for dispute ${data.disputeId}`);\nconsole.log(`[StudioLedger] Deadline: ${data.directResolutionDeadline}`);\nconsole.log(`[StudioLedger] If unresolved, will escalate to Tier 2 (Platform Mediated Review)`);\n\n// In production: use n8n Wait node or scheduled trigger\n// to check dispute status after 7 days and auto-escalate\n\nreturn [{\n  json: {\n    ...data,\n    escalationScheduled: true,\n    nextTier: 2,\n    nextTierName: 'Platform-Mediated Review',\n    message: `Escalation to Tier 2 scheduled if unresolved by ${data.directResolutionDeadline}`\n  }\n}];"
+      },
+      "id": "c3d4e5f6-3333-4000-8000-000000000004",
+      "name": "Schedule Tier 2 Escalation",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [960, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Log dispute pipeline status\nconst data = $input.first().json;\n\nconst summary = {\n  disputeId: data.disputeId,\n  contractId: data.contractId,\n  status: 'tier_1_active',\n  tier: 1,\n  tierName: 'Direct Resolution',\n  filedBy: data.filedBy,\n  amount: `${data.amount} ${data.currency}`,\n  directResolutionDeadline: data.directResolutionDeadline,\n  escalationScheduled: data.escalationScheduled,\n  processedAt: new Date().toISOString()\n};\n\nconsole.log('[StudioLedger] Dispute pipeline complete:', JSON.stringify(summary));\n\nreturn [{ json: summary }];"
+      },
+      "id": "c3d4e5f6-3333-4000-8000-000000000005",
+      "name": "Pipeline Status",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1200, 300]
+    }
+  ],
+  "connections": {
+    "Webhook: dispute.opened": {
+      "main": [[{ "node": "Parse Dispute", "type": "main", "index": 0 }]]
+    },
+    "Parse Dispute": {
+      "main": [[{ "node": "Notify: Dispute Filed", "type": "main", "index": 0 }]]
+    },
+    "Notify: Dispute Filed": {
+      "main": [[{ "node": "Schedule Tier 2 Escalation", "type": "main", "index": 0 }]]
+    },
+    "Schedule Tier 2 Escalation": {
+      "main": [[{ "node": "Pipeline Status", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    { "name": "studioledger" },
+    { "name": "disputes" }
+  ]
+}

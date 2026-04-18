@@ -1,0 +1,88 @@
+---
+title: StudioLedger — Full Architecture
+---
+graph TB
+  subgraph Frontend["🖥️ FRONTEND — Next.js 14"]
+    nextjs["Next.js 14<br/>App Router + RSC"]
+    dashboard["Dashboard<br/>Role-aware CR/MK"]
+    marketplace["Marketplace<br/>Creator Discovery"]
+    contractsUI["Contract Detail<br/>Milestone Flow"]
+    mccPortfolio["MCC Portfolio<br/>Federal Aesthetic"]
+    adminUI["Admin Panel<br/>Phase 2"]
+  end
+
+  subgraph API["🔌 API ROUTES"]
+    contractsAPI["/api/contracts<br/>CRUD + State Machine"]
+    proposalsAPI["/api/proposals<br/>CR↔MK Negotiation"]
+    milestonesAPI["/api/milestones/seq<br/>fund/submit/approve/release"]
+    mccsAPI["/api/mccs<br/>Credential Queries"]
+    adminAPI["/api/admin/*<br/>Auth + Disputes + Audit"]
+    testAPI["/api/test/*<br/>Mock Escrow/Mint"]
+  end
+
+  subgraph Services["⚙️ SERVICE LAYER"]
+    escrow["Escrow Engine<br/>milestone-escrow.ts"]
+    mint["MCC Mint<br/>mint-credential.ts"]
+    crypto["Crypto<br/>AES-256-GCM"]
+    messages["Contract Messages<br/>Activity Timeline"]
+    wallet["Wallet Manager<br/>Philosophy A"]
+    n8nClient["n8n Client<br/>14 Event Types"]
+  end
+
+  subgraph External["🌐 EXTERNAL SYSTEMS"]
+    xrpl["XRPL Ledger<br/>Escrow + NFT + Payments"]
+    supabase["Supabase<br/>Postgres + RLS + Auth"]
+    pinata["Pinata/IPFS<br/>MCC Metadata"]
+    n8n["n8n Workflows<br/>Automations"]
+    austrac["AUSTRAC<br/>VASP Compliance"]
+  end
+
+  subgraph Admin["🔑 ADMIN LAYER — migration 015"]
+    boss["Boss<br/>Full Access"]
+    dev["Dev<br/>DB + Architecture"]
+    accounting["Accounting<br/>Financial Data"]
+    commercial["Commercial<br/>Contracts + Disputes"]
+    protocol["Protocol<br/>UX/UI + Config"]
+  end
+
+  %% Frontend → API
+  dashboard -->|fetch| contractsAPI
+  marketplace -->|offer| proposalsAPI
+  contractsUI -->|actions| milestonesAPI
+  mccPortfolio -->|query| mccsAPI
+  adminUI -->|manage| adminAPI
+
+  %% API → Services
+  contractsAPI -->|fund| escrow
+  contractsAPI -->|encrypt| crypto
+  milestonesAPI -->|release| escrow
+  milestonesAPI -->|mint MCC| mint
+  milestonesAPI -->|log| messages
+  contractsAPI -->|events| n8nClient
+
+  %% Services → External
+  escrow -->|EscrowCreate/Finish| xrpl
+  mint -->|NFTokenMint| xrpl
+  mint -->|metadata| pinata
+  wallet -->|wallet ops| xrpl
+  crypto -->|encrypted store| supabase
+  n8nClient -->|webhooks| n8n
+  messages -->|insert| supabase
+
+  %% Admin
+  adminAPI -->|admin_accounts| supabase
+  commercial -->|disputes| adminAPI
+  boss -->|all access| adminAPI
+
+  %% Styling
+  classDef frontend fill:#1e3a5f,stroke:#3b82f6,color:#E6EDF3
+  classDef api fill:#2d1f5e,stroke:#8b5cf6,color:#E6EDF3
+  classDef service fill:#3d2e0a,stroke:#f59e0b,color:#E6EDF3
+  classDef external fill:#0a2e1f,stroke:#10b981,color:#E6EDF3
+  classDef admin fill:#3d0a0a,stroke:#ef4444,color:#E6EDF3
+
+  class nextjs,dashboard,marketplace,contractsUI,mccPortfolio,adminUI frontend
+  class contractsAPI,proposalsAPI,milestonesAPI,mccsAPI,adminAPI,testAPI api
+  class escrow,mint,crypto,messages,wallet,n8nClient service
+  class xrpl,supabase,pinata,n8n,austrac external
+  class boss,dev,accounting,commercial,protocol admin

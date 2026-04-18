@@ -1,0 +1,43 @@
+---
+title: StudioLedger — Milestone Lifecycle State Machine
+---
+stateDiagram-v2
+  [*] --> Draft
+  Draft --> Proposed: propose terms
+  Proposed --> Funded: fund escrow (EscrowCreate)
+
+  Funded --> Submitted: creator submits work
+  Funded --> Disputed: either party disputes
+
+  Submitted --> Approved: client approves
+  Submitted --> Funded: request changes (deliverables cleared)
+  Submitted --> Disputed: either party disputes
+
+  Approved --> Released: release escrow (EscrowFinish)
+  Approved --> Disputed: either party disputes
+
+  Released --> MCC_Minted: auto-mint T1 + T4
+
+  Disputed --> Resolved: panel vote / admin ruling
+  Resolved --> Released: creator wins → release
+  Resolved --> Refunded: client wins → refund
+
+  MCC_Minted --> [*]
+  Refunded --> [*]
+
+  note right of Funded
+    0.98% fee deducted on release
+    via creator wallet seed decryption
+  end note
+
+  note right of MCC_Minted
+    T1 = Work Credential (creator)
+    T4 = Client Completion (marketplace)
+    Metadata stored on IPFS via Pinata
+  end note
+
+  note left of Disputed
+    3-member arbitration panel
+    Votes: creator / marketplace / split
+    Escalation to boss admin on deadlock
+  end note

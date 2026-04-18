@@ -1,0 +1,268 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 1050" style="background:#0D1117">
+  <defs>
+    <marker id="fk" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#C9A84C" opacity="0.5"/>
+    </marker>
+    <style>
+      text { font-family: system-ui, -apple-system, sans-serif; }
+      .tbl { rx: 10; stroke-width: 1.5; }
+      .tbl:hover { filter: brightness(1.2); }
+      .tbl-header { rx: 10; }
+      .tbl-name { font-size: 13px; font-weight: 700; fill: #E6EDF3; }
+      .col { font-size: 10px; font-family: 'JetBrains Mono', monospace, system-ui; fill: #8B949E; }
+      .col-pk { fill: #C9A84C; }
+      .col-fk { fill: #58A6FF; }
+      .group-label { font-size: 14px; font-weight: 700; letter-spacing: 0.08em; }
+      .rel { fill: none; stroke: #C9A84C; stroke-width: 1; opacity: 0.35; marker-end: url(#fk); }
+      .rel:hover { opacity: 0.8; stroke-width: 1.5; }
+      .title { font-size: 22px; font-weight: 800; fill: #C9A84C; }
+      .subtitle { font-size: 12px; fill: #8B949E; }
+    </style>
+  </defs>
+
+  <text x="40" y="38" class="title">StudioLedger</text>
+  <text x="225" y="38" class="subtitle">Database Schema — 15 Tables</text>
+
+  <!-- ═══ CORE GROUP ═══ -->
+  <text x="60" y="80" class="group-label" fill="#3B82F6">CORE</text>
+
+  <!-- users -->
+  <rect x="40" y="95" width="220" height="170" class="tbl" fill="#161B22" stroke="#3B82F6"/>
+  <rect x="40" y="95" width="220" height="28" class="tbl-header" fill="#1e3a5f"/>
+  <text x="55" y="114" class="tbl-name">users</text>
+  <text x="55" y="140" class="col col-pk">id uuid PK</text>
+  <text x="55" y="155" class="col">email text UK</text>
+  <text x="55" y="170" class="col">display_name text</text>
+  <text x="55" y="185" class="col">role text (creator|marketplace)</text>
+  <text x="55" y="200" class="col">xrpl_address text</text>
+  <text x="55" y="215" class="col">encrypted_seed text</text>
+  <text x="55" y="230" class="col">created_at timestamp</text>
+
+  <!-- contracts -->
+  <rect x="300" y="95" width="240" height="195" class="tbl" fill="#161B22" stroke="#3B82F6"/>
+  <rect x="300" y="95" width="240" height="28" class="tbl-header" fill="#1e3a5f"/>
+  <text x="315" y="114" class="tbl-name">contracts</text>
+  <text x="315" y="140" class="col col-pk">id uuid PK</text>
+  <text x="315" y="155" class="col col-fk">creator_id uuid FK → users</text>
+  <text x="315" y="170" class="col col-fk">marketplace_id uuid FK → users</text>
+  <text x="315" y="185" class="col">title text</text>
+  <text x="315" y="200" class="col">status text</text>
+  <text x="315" y="215" class="col">template text</text>
+  <text x="315" y="230" class="col">currency text (XRP|RLUSD)</text>
+  <text x="315" y="245" class="col">total_amount numeric</text>
+  <text x="315" y="260" class="col">created_at timestamp</text>
+
+  <!-- milestones -->
+  <rect x="580" y="95" width="250" height="225" class="tbl" fill="#161B22" stroke="#3B82F6"/>
+  <rect x="580" y="95" width="250" height="28" class="tbl-header" fill="#1e3a5f"/>
+  <text x="595" y="114" class="tbl-name">milestones</text>
+  <text x="595" y="140" class="col col-pk">id uuid PK</text>
+  <text x="595" y="155" class="col col-fk">contract_id uuid FK → contracts</text>
+  <text x="595" y="170" class="col">sequence int</text>
+  <text x="595" y="185" class="col">title text</text>
+  <text x="595" y="200" class="col">status text</text>
+  <text x="595" y="215" class="col">amount numeric</text>
+  <text x="595" y="230" class="col">currency text</text>
+  <text x="595" y="245" class="col">escrow_tx_hash text</text>
+  <text x="595" y="260" class="col">deliverable_hash text</text>
+  <text x="595" y="275" class="col">deliverable_media_url text</text>
+  <text x="595" y="290" class="col">released_at timestamp</text>
+
+  <!-- contract_messages -->
+  <rect x="870" y="95" width="240" height="180" class="tbl" fill="#161B22" stroke="#3B82F6"/>
+  <rect x="870" y="95" width="240" height="28" class="tbl-header" fill="#1e3a5f"/>
+  <text x="885" y="114" class="tbl-name">contract_messages</text>
+  <text x="885" y="140" class="col col-pk">id uuid PK</text>
+  <text x="885" y="155" class="col col-fk">contract_id uuid FK → contracts</text>
+  <text x="885" y="170" class="col col-fk">sender_id uuid FK → users</text>
+  <text x="885" y="185" class="col">type text</text>
+  <text x="885" y="200" class="col">content text</text>
+  <text x="885" y="215" class="col">metadata jsonb</text>
+  <text x="885" y="230" class="col">created_at timestamp</text>
+
+  <!-- ═══ CREDENTIALS GROUP ═══ -->
+  <text x="60" y="350" class="group-label" fill="#C9A84C">CREDENTIALS</text>
+
+  <!-- nft_registry -->
+  <rect x="40" y="365" width="250" height="200" class="tbl" fill="#161B22" stroke="#C9A84C"/>
+  <rect x="40" y="365" width="250" height="28" class="tbl-header" fill="#2d1f0a"/>
+  <text x="55" y="384" class="tbl-name">nft_registry</text>
+  <text x="55" y="410" class="col col-pk">id uuid PK</text>
+  <text x="55" y="425" class="col col-fk">contract_id uuid FK → contracts</text>
+  <text x="55" y="440" class="col col-fk">milestone_id uuid FK → milestones</text>
+  <text x="55" y="455" class="col">nft_token_id text</text>
+  <text x="55" y="470" class="col">taxon int (1=Work|2=License|3=Access|4=Client)</text>
+  <text x="55" y="485" class="col">owner text</text>
+  <text x="55" y="500" class="col">mint_tx_hash text</text>
+  <text x="55" y="515" class="col">metadata_cid text</text>
+  <text x="55" y="530" class="col">created_at timestamp</text>
+
+  <!-- dispute_events -->
+  <rect x="330" y="365" width="240" height="165" class="tbl" fill="#161B22" stroke="#C9A84C"/>
+  <rect x="330" y="365" width="240" height="28" class="tbl-header" fill="#2d1f0a"/>
+  <text x="345" y="384" class="tbl-name">dispute_events</text>
+  <text x="345" y="410" class="col col-pk">id uuid PK</text>
+  <text x="345" y="425" class="col col-fk">contract_id uuid FK → contracts</text>
+  <text x="345" y="440" class="col col-fk">milestone_id uuid FK → milestones</text>
+  <text x="345" y="455" class="col col-fk">initiated_by uuid FK → users</text>
+  <text x="345" y="470" class="col">reason text</text>
+  <text x="345" y="485" class="col">status text</text>
+  <text x="345" y="500" class="col">created_at timestamp</text>
+
+  <!-- ═══ NEGOTIATION GROUP ═══ -->
+  <text x="620" y="350" class="group-label" fill="#BC8CFF">NEGOTIATION</text>
+
+  <!-- project_briefs -->
+  <rect x="610" y="365" width="220" height="165" class="tbl" fill="#161B22" stroke="#BC8CFF"/>
+  <rect x="610" y="365" width="220" height="28" class="tbl-header" fill="#2d1f5e"/>
+  <text x="625" y="384" class="tbl-name">project_briefs</text>
+  <text x="625" y="410" class="col col-pk">id uuid PK</text>
+  <text x="625" y="425" class="col col-fk">marketplace_id uuid FK → users</text>
+  <text x="625" y="440" class="col">title text</text>
+  <text x="625" y="455" class="col">description text</text>
+  <text x="625" y="470" class="col">budget numeric</text>
+  <text x="625" y="485" class="col">deadline date</text>
+  <text x="625" y="500" class="col">created_at timestamp</text>
+
+  <!-- proposals -->
+  <rect x="870" y="365" width="240" height="165" class="tbl" fill="#161B22" stroke="#BC8CFF"/>
+  <rect x="870" y="365" width="240" height="28" class="tbl-header" fill="#2d1f5e"/>
+  <text x="885" y="384" class="tbl-name">proposals</text>
+  <text x="885" y="410" class="col col-pk">id uuid PK</text>
+  <text x="885" y="425" class="col col-fk">brief_id uuid FK → project_briefs</text>
+  <text x="885" y="440" class="col col-fk">counterparty_id uuid FK → users</text>
+  <text x="885" y="455" class="col">direction text (cr_to_mk|mk_to_cr)</text>
+  <text x="885" y="470" class="col">terms jsonb</text>
+  <text x="885" y="485" class="col">status text</text>
+  <text x="885" y="500" class="col">created_at timestamp</text>
+
+  <!-- proposal_rounds -->
+  <rect x="1150" y="365" width="240" height="150" class="tbl" fill="#161B22" stroke="#BC8CFF"/>
+  <rect x="1150" y="365" width="240" height="28" class="tbl-header" fill="#2d1f5e"/>
+  <text x="1165" y="384" class="tbl-name">proposal_rounds</text>
+  <text x="1165" y="410" class="col col-pk">id uuid PK</text>
+  <text x="1165" y="425" class="col col-fk">proposal_id uuid FK → proposals</text>
+  <text x="1165" y="440" class="col">round_number int</text>
+  <text x="1165" y="455" class="col">changes jsonb</text>
+  <text x="1165" y="470" class="col col-fk">proposed_by uuid FK → users</text>
+  <text x="1165" y="485" class="col">created_at timestamp</text>
+
+  <!-- ═══ ADMIN GROUP ═══ -->
+  <text x="60" y="600" class="group-label" fill="#F85149">ADMIN</text>
+
+  <!-- admin_accounts -->
+  <rect x="40" y="615" width="240" height="210" class="tbl" fill="#161B22" stroke="#EF4444"/>
+  <rect x="40" y="615" width="240" height="28" class="tbl-header" fill="#3d0a0a"/>
+  <text x="55" y="634" class="tbl-name">admin_accounts</text>
+  <text x="55" y="660" class="col col-pk">id uuid PK</text>
+  <text x="55" y="675" class="col">email text UK (@studioledger.ai)</text>
+  <text x="55" y="690" class="col">display_name text</text>
+  <text x="55" y="705" class="col">admin_role text (boss|dev|acct|comm|proto)</text>
+  <text x="55" y="720" class="col">password_hash text (bcrypt)</text>
+  <text x="55" y="735" class="col">is_active boolean</text>
+  <text x="55" y="750" class="col col-fk">created_by uuid FK → self</text>
+  <text x="55" y="765" class="col">last_login_at timestamp</text>
+  <text x="55" y="780" class="col">created_at timestamp</text>
+
+  <!-- admin_sessions -->
+  <rect x="320" y="615" width="220" height="150" class="tbl" fill="#161B22" stroke="#EF4444"/>
+  <rect x="320" y="615" width="220" height="28" class="tbl-header" fill="#3d0a0a"/>
+  <text x="335" y="634" class="tbl-name">admin_sessions</text>
+  <text x="335" y="660" class="col col-pk">id uuid PK</text>
+  <text x="335" y="675" class="col col-fk">admin_id uuid FK → admin_accounts</text>
+  <text x="335" y="690" class="col">token_hash text UK (SHA-256)</text>
+  <text x="335" y="705" class="col">ip_address text</text>
+  <text x="335" y="720" class="col">user_agent text</text>
+  <text x="335" y="735" class="col">expires_at timestamp</text>
+
+  <!-- admin_audit_log -->
+  <rect x="580" y="615" width="230" height="165" class="tbl" fill="#161B22" stroke="#EF4444"/>
+  <rect x="580" y="615" width="230" height="28" class="tbl-header" fill="#3d0a0a"/>
+  <text x="595" y="634" class="tbl-name">admin_audit_log</text>
+  <text x="595" y="660" class="col col-pk">id uuid PK</text>
+  <text x="595" y="675" class="col col-fk">admin_id uuid FK → admin_accounts</text>
+  <text x="595" y="690" class="col">action text</text>
+  <text x="595" y="705" class="col">target_type text</text>
+  <text x="595" y="720" class="col">target_id uuid</text>
+  <text x="595" y="735" class="col">details jsonb</text>
+  <text x="595" y="750" class="col">ip_address text</text>
+
+  <!-- admin_permissions -->
+  <rect x="850" y="615" width="220" height="150" class="tbl" fill="#161B22" stroke="#EF4444"/>
+  <rect x="850" y="615" width="220" height="28" class="tbl-header" fill="#3d0a0a"/>
+  <text x="865" y="634" class="tbl-name">admin_permissions</text>
+  <text x="865" y="660" class="col col-pk">id uuid PK</text>
+  <text x="865" y="675" class="col">admin_role text</text>
+  <text x="865" y="690" class="col">resource text (17 resources)</text>
+  <text x="865" y="705" class="col">can_read boolean</text>
+  <text x="865" y="720" class="col">can_write boolean</text>
+  <text x="865" y="735" class="col">can_delete boolean</text>
+
+  <!-- dispute_arbitrators -->
+  <rect x="1110" y="615" width="240" height="180" class="tbl" fill="#161B22" stroke="#EF4444"/>
+  <rect x="1110" y="615" width="240" height="28" class="tbl-header" fill="#3d0a0a"/>
+  <text x="1125" y="634" class="tbl-name">dispute_arbitrators</text>
+  <text x="1125" y="660" class="col col-pk">id uuid PK</text>
+  <text x="1125" y="675" class="col col-fk">user_id uuid FK UK → users</text>
+  <text x="1125" y="690" class="col">status text (pending|active|suspended)</text>
+  <text x="1125" y="705" class="col">skill_domains jsonb</text>
+  <text x="1125" y="720" class="col">mcc_count int</text>
+  <text x="1125" y="735" class="col">cases_completed int</text>
+  <text x="1125" y="750" class="col col-fk">approved_by uuid FK → admin_accounts</text>
+
+  <!-- dispute_panels -->
+  <rect x="1110" y="830" width="240" height="150" class="tbl" fill="#161B22" stroke="#EF4444"/>
+  <rect x="1110" y="830" width="240" height="28" class="tbl-header" fill="#3d0a0a"/>
+  <text x="1125" y="849" class="tbl-name">dispute_panels</text>
+  <text x="1125" y="875" class="col col-pk">id uuid PK</text>
+  <text x="1125" y="890" class="col col-fk">dispute_id uuid FK → dispute_events</text>
+  <text x="1125" y="905" class="col col-fk">arbitrator_id uuid FK → dispute_arbs</text>
+  <text x="1125" y="920" class="col">vote text (creator|marketplace|split)</text>
+  <text x="1125" y="935" class="col">vote_reason text</text>
+  <text x="1125" y="950" class="col">voted_at timestamp</text>
+
+  <!-- ═══ RELATIONSHIPS ═══ -->
+  <!-- users → contracts -->
+  <path d="M260 180 L300 180" class="rel"/>
+  <!-- contracts → milestones -->
+  <path d="M540 200 L580 200" class="rel"/>
+  <!-- contracts → messages -->
+  <path d="M540 150 C700 150, 850 120, 870 120" class="rel"/>
+  <!-- contracts → nft_registry -->
+  <path d="M420 290 L420 340 L165 340 L165 365" class="rel"/>
+  <!-- milestones → nft_registry -->
+  <path d="M580 300 L580 340 L200 340 L200 365" class="rel"/>
+  <!-- contracts → dispute_events -->
+  <path d="M450 290 L450 365" class="rel"/>
+  <!-- users → project_briefs -->
+  <path d="M260 220 C280 380, 600 380, 625 410" class="rel"/>
+  <!-- briefs → proposals -->
+  <path d="M830 450 L870 450" class="rel"/>
+  <!-- proposals → rounds -->
+  <path d="M1110 450 L1150 450" class="rel"/>
+  <!-- admin → sessions -->
+  <path d="M280 700 L320 700" class="rel"/>
+  <!-- admin → audit -->
+  <path d="M280 720 C400 730, 560 700, 580 700" class="rel"/>
+  <!-- admin → arbitrators -->
+  <path d="M280 760 C600 770, 1050 750, 1110 750" class="rel"/>
+  <!-- dispute_events → panels -->
+  <path d="M450 530 C500 700, 1050 870, 1110 870" class="rel"/>
+  <!-- arbitrators → panels -->
+  <path d="M1230 795 L1230 830" class="rel"/>
+  <!-- users → arbitrators -->
+  <path d="M150 265 C150 580, 1100 660, 1110 660" class="rel"/>
+
+  <!-- Legend -->
+  <g transform="translate(40, 980)">
+    <text x="0" y="12" font-size="10" fill="#8B949E">Legend:</text>
+    <rect x="60" y="2" width="12" height="12" rx="2" fill="transparent" stroke="#C9A84C" stroke-width="1.5"/>
+    <text x="78" y="12" font-size="10" fill="#C9A84C">PK</text>
+    <rect x="110" y="2" width="12" height="12" rx="2" fill="transparent" stroke="#58A6FF" stroke-width="1.5"/>
+    <text x="128" y="12" font-size="10" fill="#58A6FF">FK</text>
+    <line x1="165" y1="8" x2="210" y2="8" stroke="#C9A84C" stroke-width="1" opacity="0.5" marker-end="url(#fk)"/>
+    <text x="218" y="12" font-size="10" fill="#8B949E">Relationship</text>
+  </g>
+
+  <text x="750" y="1030" font-size="10" fill="#8B949E" text-anchor="middle" opacity="0.4">StudioLedger Database — 15 tables — Zoom with Cmd+/- or pinch for full column detail</text>
+</svg>

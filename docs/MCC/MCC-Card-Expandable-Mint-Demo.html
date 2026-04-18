@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCC Card - Expandable Mint Details</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0a0e27 0%, #16213e 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #00ccff;
+            margin-bottom: 40px;
+            text-align: center;
+            font-size: 28px;
+            text-shadow: 0 0 20px rgba(0, 204, 255, 0.5);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        /* Card Styles */
+        .mcc-card {
+            background: rgba(22, 33, 62, 0.9);
+            border: 1px solid rgba(0, 204, 255, 0.4);
+            border-radius: 10px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .mcc-card:hover {
+            border-color: rgba(0, 204, 255, 0.8);
+            box-shadow: 0 0 20px rgba(0, 204, 255, 0.2);
+        }
+
+        .card-header {
+            padding: 16px;
+        }
+
+        .card-top {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .sphere-icon {
+            flex-shrink: 0;
+            width: 25px;
+            height: 25px;
+        }
+
+        .sphere-icon canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            border: 1px solid rgba(0, 204, 255, 0.6);
+            border-radius: 4px;
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        .card-title-group {
+            flex: 1;
+        }
+
+        .card-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.95);
+            margin-bottom: 2px;
+            line-height: 1.2;
+        }
+
+        .card-creator {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .card-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(0, 204, 255, 0.2);
+        }
+
+        .card-rating {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .star {
+            color: #ffd700;
+            font-size: 12px;
+        }
+
+        .rating-value {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 600;
+        }
+
+        .rating-count {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .card-amount {
+            text-align: right;
+        }
+
+        .amount-value {
+            font-size: 12px;
+            font-weight: 600;
+            color: #00ccff;
+        }
+
+        .amount-date {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .card-tags {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .tag {
+            background: rgba(0, 204, 255, 0.15);
+            color: #00ccff;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: 500;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .btn-primary {
+            flex: 1;
+            background: rgba(0, 204, 255, 0.2);
+            border: 1px solid rgba(0, 204, 255, 0.6);
+            color: #00ccff;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary:hover {
+            background: rgba(0, 204, 255, 0.3);
+            border-color: rgba(0, 204, 255, 0.8);
+        }
+
+        .btn-secondary {
+            flex: 1;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.6);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-secondary:hover {
+            border-color: rgba(255, 255, 255, 0.4);
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .card-badge {
+            text-align: center;
+            padding-top: 10px;
+            border-top: 1px solid rgba(0, 204, 255, 0.15);
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Expandable Details */
+        .card-details {
+            border-top: 1px solid rgba(0, 204, 255, 0.2);
+            background: rgba(0, 204, 255, 0.08);
+            padding: 16px;
+            max-height: 500px;
+            overflow-y: auto;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                max-height: 0;
+            }
+            to {
+                opacity: 1;
+                max-height: 500px;
+            }
+        }
+
+        .details-section-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #00ccff;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .details-subsection {
+            margin-bottom: 14px;
+        }
+
+        .subsection-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 6px;
+        }
+
+        .subsection-content {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.6);
+            line-height: 1.6;
+        }
+
+        .subsection-content div {
+            margin-bottom: 4px;
+        }
+
+        code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 4px;
+            border-radius: 2px;
+            font-size: 9px;
+            font-family: 'Courier New', monospace;
+            display: inline-block;
+            word-break: break-all;
+        }
+
+        .code-block {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 4px;
+            border-radius: 2px;
+            display: block;
+            margin-top: 4px;
+            word-break: break-all;
+            font-family: 'Courier New', monospace;
+        }
+
+        .success {
+            color: #00ff88;
+        }
+
+        .note {
+            background: rgba(0, 204, 255, 0.05);
+            border: 1px solid rgba(0, 204, 255, 0.2);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 30px;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 12px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎖️ MCC Card • Expandable Mint Details</h1>
+
+        <div class="grid">
+            <!-- Card 1 -->
+            <div class="mcc-card" id="card1">
+                <div class="card-header">
+                    <div class="card-top">
+                        <div class="sphere-icon">
+                            <canvas id="sphere-1" width="25" height="25"></canvas>
+                        </div>
+                        <div class="card-title-group">
+                            <div class="card-title">Oreo Brand Creative Direction</div>
+                            <div class="card-creator">by Alice Martin</div>
+                        </div>
+                    </div>
+
+                    <div class="card-meta">
+                        <div class="card-rating">
+                            <span class="star">★</span>
+                            <span class="rating-value">5.0</span>
+                            <span class="rating-count">(127)</span>
+                        </div>
+                        <div class="card-amount">
+                            <div class="amount-value">5,616.72 RUSD</div>
+                            <div class="amount-date">Mar 10, 2025</div>
+                        </div>
+                    </div>
+
+                    <div class="card-tags">
+                        <span class="tag">#Design</span>
+                        <span class="tag">#Branding</span>
+                        <span class="tag">#VisualComm</span>
+                    </div>
+
+                    <div class="card-actions">
+                        <button class="btn-primary" onclick="toggleDetails('card1')">View Details</button>
+                        <button class="btn-secondary">Share</button>
+                    </div>
+
+                    <div class="card-badge">✓ Verified on XRPL • ZK Proof Valid</div>
+                </div>
+
+                <!-- Details Section -->
+                <div id="details-card1" style="display: none;">
+                    <div class="card-details">
+                        <div class="details-section-title">Contract & Escrow Details</div>
+
+                        <!-- Escrow -->
+                        <div class="details-subsection">
+                            <div class="subsection-title">🔒 Escrow Status</div>
+                            <div class="subsection-content">
+                                <div><strong>Address:</strong> <code>rN9cZvQn5B86wXQkqKiVmWf9J7SSh3z2u4</code></div>
+                                <div><strong>Amount Locked:</strong> 5,616.72 XRP</div>
+                                <div><strong>Status:</strong> <span class="success">✓ Locked</span></div>
+                            </div>
+                        </div>
+
+                        <!-- Crypto-Condition -->
+                        <div class="details-subsection">
+                            <div class="subsection-title">🔐 Crypto-Condition (XLS-85)</div>
+                            <div class="subsection-content">
+                                <div><strong>Condition:</strong>
+                                    <code class="code-block">SHA-256: abc123def456ghi789jkl012mno345pqr678stu901vwx234yz</code>
+                                </div>
+                                <div style="margin-top: 6px;"><strong>Fulfillment:</strong> Not yet released</div>
+                            </div>
+                        </div>
+
+                        <!-- MCC Minting -->
+                        <div class="details-subsection">
+                            <div class="subsection-title">🎖️ MCC Minting</div>
+                            <div class="subsection-content">
+                                <div><strong>Token ID:</strong> MCC-0047-XYZ891</div>
+                                <div><strong>Status:</strong> <span class="success">✓ Ready to Mint</span></div>
+                                <div><strong>Standard:</strong> XLS-20 (Non-Fungible Token)</div>
+                            </div>
+                        </div>
+
+                        <!-- Ledger -->
+                        <div class="details-subsection">
+                            <div class="subsection-title">⛓️ XRP Ledger</div>
+                            <div class="subsection-content">
+                                <div><strong>Closed Ledger:</strong> Ledger 84,902,345</div>
+                                <div><strong>Created:</strong> 2025-03-10T09:47:32Z</div>
+                                <div><strong>Maturity Date:</strong> 2025-06-10T09:47:32Z</div>
+                            </div>
+                        </div>
+
+                        <!-- Hash -->
+                        <div style="border-top: 1px solid rgba(0, 204, 255, 0.15); padding-top: 12px;">
+                            <div style="font-size: 10px; color: rgba(255, 255, 255, 0.5); word-break: break-all; font-family: Courier New, monospace; line-height: 1.4;">
+                                <strong>Contract Hash:</strong>
+                                <code class="code-block">ABC123DEF456GHI789JKL012MNO345PQR678STU901VWX234YZ</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="mcc-card" id="card2">
+                <div class="card-header">
+                    <div class="card-top">
+                        <div class="sphere-icon">
+                            <canvas id="sphere-2" width="25" height="25"></canvas>
+                        </div>
+                        <div class="card-title-group">
+                            <div class="card-title">Full-Stack Development</div>
+                            <div class="card-creator">by Marcus Chen</div>
+                        </div>
+                    </div>
+
+                    <div class="card-meta">
+                        <div class="card-rating">
+                            <span class="star">★</span>
+                            <span class="rating-value">4.9</span>
+                            <span class="rating-count">(89)</span>
+                        </div>
+                        <div class="card-amount">
+                            <div class="amount-value">12,840.50 RUSD</div>
+                            <div class="amount-date">Feb 28, 2025</div>
+                        </div>
+                    </div>
+
+                    <div class="card-tags">
+                        <span class="tag" style="background: rgba(0, 204, 255, 0.15); color: #00ccff;">#React</span>
+                        <span class="tag" style="background: rgba(0, 204, 255, 0.15); color: #00ccff;">#Node.js</span>
+                        <span class="tag" style="background: rgba(0, 204, 255, 0.15); color: #00ccff;">#Backend</span>
+                    </div>
+
+                    <div class="card-actions">
+                        <button class="btn-primary" onclick="toggleDetails('card2')">View Details</button>
+                        <button class="btn-secondary">Share</button>
+                    </div>
+
+                    <div class="card-badge">✓ Verified on XRPL • ZK Proof Valid</div>
+                </div>
+
+                <!-- Details Section -->
+                <div id="details-card2" style="display: none;">
+                    <div class="card-details">
+                        <div class="details-section-title">Contract & Escrow Details</div>
+
+                        <div class="details-subsection">
+                            <div class="subsection-title">🔒 Escrow Status</div>
+                            <div class="subsection-content">
+                                <div><strong>Address:</strong> <code>rG8mXSv3YjRnYGvKYyXVUzJp9V4Py5SmuF</code></div>
+                                <div><strong>Amount Locked:</strong> 12,840.50 XRP</div>
+                                <div><strong>Status:</strong> <span class="success">✓ Locked</span></div>
+                            </div>
+                        </div>
+
+                        <div class="details-subsection">
+                            <div class="subsection-title">🔐 Crypto-Condition (XLS-85)</div>
+                            <div class="subsection-content">
+                                <div><strong>Condition:</strong>
+                                    <code class="code-block">SHA-256: xyz789abc123def456ghi789jkl012mno345pqr678stu901</code>
+                                </div>
+                                <div style="margin-top: 6px;"><strong>Fulfillment:</strong> Not yet released</div>
+                            </div>
+                        </div>
+
+                        <div class="details-subsection">
+                            <div class="subsection-title">🎖️ MCC Minting</div>
+                            <div class="subsection-content">
+                                <div><strong>Token ID:</strong> MCC-0048-DEF456</div>
+                                <div><strong>Status:</strong> <span class="success">✓ Ready to Mint</span></div>
+                                <div><strong>Standard:</strong> XLS-20 (Non-Fungible Token)</div>
+                            </div>
+                        </div>
+
+                        <div class="details-subsection">
+                            <div class="subsection-title">⛓️ XRP Ledger</div>
+                            <div class="subsection-content">
+                                <div><strong>Closed Ledger:</strong> Ledger 84,902,344</div>
+                                <div><strong>Created:</strong> 2025-02-28T14:22:15Z</div>
+                                <div><strong>Maturity Date:</strong> 2025-05-28T14:22:15Z</div>
+                            </div>
+                        </div>
+
+                        <div style="border-top: 1px solid rgba(0, 204, 255, 0.15); padding-top: 12px;">
+                            <div style="font-size: 10px; color: rgba(255, 255, 255, 0.5); word-break: break-all; font-family: Courier New, monospace;">
+                                <strong>Contract Hash:</strong>
+                                <code class="code-block">XYZ789ABC123DEF456GHI789JKL012MNO345PQR678STU901VWX</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="note">
+            <strong>End-to-End MCC Minting Test:</strong><br>
+            Click "View Details" to expand and see the full contract flow:
+            <br>1. Escrow wallet locked with exact amount (XRP-based)
+            <br>2. Crypto-condition (SHA-256 hash) created for conditional release
+            <br>3. MCC Token ID generated and ready to mint on XRPL
+            <br>4. Ledger information shows immutable timestamp
+            <br><br>
+            This card layout supports the complete end-to-end minting workflow: escrow → crypto-condition → MCC mint → blockchain verification.
+        </div>
+    </div>
+
+    <script>
+        /**
+         * Toggle details visibility
+         */
+        function toggleDetails(cardId) {
+            const detailsId = 'details-' + cardId;
+            const details = document.getElementById(detailsId);
+            const button = event.target;
+
+            if (details.style.display === 'none') {
+                details.style.display = 'block';
+                button.textContent = 'Hide Details';
+            } else {
+                details.style.display = 'none';
+                button.textContent = 'View Details';
+            }
+        }
+
+        /**
+         * World Sphere animation (same as before)
+         */
+        class WorldSphere25 {
+            constructor(canvasId) {
+                this.canvas = document.getElementById(canvasId);
+                this.ctx = this.canvas.getContext('2d');
+                this.color = '#00ccff';
+                this.size = 25;
+                this.centerX = this.size / 2;
+                this.centerY = this.size / 2;
+                this.radius = 8;
+                this.points = [];
+                this.generatePoints();
+                this.rotationRight = 0;
+                this.earthTilt = (23.5 * Math.PI) / 180;
+                this.animate();
+            }
+
+            generatePoints() {
+                for (let i = 0; i < 100; i++) {
+                    const theta = Math.random() * Math.PI * 2;
+                    const phi = Math.random() * Math.PI;
+                    const x = Math.sin(phi) * Math.cos(theta) * this.radius;
+                    const y = Math.sin(phi) * Math.sin(theta) * this.radius;
+                    const z = Math.cos(phi) * this.radius;
+                    this.points.push({ x, y, z, baseX: x, baseY: y, baseZ: z });
+                }
+            }
+
+            rotatePoint(point, rotZ, tiltX) {
+                let x = point.baseX;
+                let y = point.baseY * Math.cos(tiltX) - point.baseZ * Math.sin(tiltX);
+                let z = point.baseY * Math.sin(tiltX) + point.baseZ * Math.cos(tiltX);
+                let x2 = x * Math.cos(rotZ) - z * Math.sin(rotZ);
+                z = x * Math.sin(rotZ) + z * Math.cos(rotZ);
+                return { x: x2, y, z };
+            }
+
+            projectPoint(point) {
+                const scale = 200 / (200 + point.z);
+                return { x: point.x * scale, y: point.y * scale, scale, z: point.z };
+            }
+
+            draw() {
+                this.ctx.fillStyle = 'rgba(10, 14, 39, 0.2)';
+                this.ctx.fillRect(0, 0, this.size, this.size);
+                this.rotationRight += 0.02;
+
+                const sorted = this.points
+                    .map((p) => ({ ...p, rotated: this.rotatePoint(p, this.rotationRight, this.earthTilt) }))
+                    .map((p) => ({ ...p, projected: this.projectPoint(p.rotated) }))
+                    .sort((a, b) => a.rotated.z - b.rotated.z);
+
+                this.ctx.fillStyle = this.color;
+                for (let point of sorted) {
+                    const screenX = this.centerX + point.projected.x * 1.2;
+                    const screenY = this.centerY + point.projected.y * 1.2;
+                    const opacity = Math.max(0.15, point.projected.scale * 0.6);
+                    this.ctx.globalAlpha = opacity;
+                    this.ctx.beginPath();
+                    this.ctx.arc(screenX, screenY, 0.5 * point.projected.scale, 0, Math.PI * 2);
+                    this.ctx.fill();
+                }
+                this.ctx.globalAlpha = 1;
+            }
+
+            animate = () => {
+                this.draw();
+                requestAnimationFrame(this.animate);
+            };
+        }
+
+        // Initialize spheres
+        new WorldSphere25('sphere-1');
+        new WorldSphere25('sphere-2');
+    </script>
+</body>
+</html>

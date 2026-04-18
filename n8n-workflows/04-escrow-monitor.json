@@ -1,0 +1,97 @@
+{
+  "name": "Escrow Monitor",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "escrow.expiring",
+        "options": {
+          "responseMode": "onReceived"
+        }
+      },
+      "id": "d4e5f6g7-4444-4000-8000-000000000001",
+      "name": "Webhook: escrow.expiring",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 200],
+      "webhookId": "escrow-expiring"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "mcc.minted",
+        "options": {
+          "responseMode": "onReceived"
+        }
+      },
+      "id": "d4e5f6g7-4444-4000-8000-000000000002",
+      "name": "Webhook: mcc.minted",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 460],
+      "webhookId": "mcc-minted"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse escrow expiring alert\nconst payload = $input.first().json.body || $input.first().json;\nconst d = payload.data || {};\n\nconst hoursUntilExpiry = d.cancelAfter \n  ? Math.round((new Date(d.cancelAfter).getTime() - Date.now()) / (1000 * 60 * 60))\n  : 'unknown';\n\nreturn [{\n  json: {\n    event: 'escrow.expiring',\n    contractId: d.contractId,\n    milestoneSeq: d.milestoneSeq,\n    escrowSequence: d.escrowSequence,\n    amount: d.amount,\n    currency: d.currency,\n    cancelAfter: d.cancelAfter,\n    hoursUntilExpiry,\n    creatorAddress: d.creatorAddress,\n    marketplaceAddress: d.marketplaceAddress,\n    timestamp: payload.timestamp\n  }\n}];"
+      },
+      "id": "d4e5f6g7-4444-4000-8000-000000000010",
+      "name": "Parse: Escrow Alert",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse MCC minted event\nconst payload = $input.first().json.body || $input.first().json;\nconst d = payload.data || {};\n\nreturn [{\n  json: {\n    event: 'mcc.minted',\n    tokenId: d.tokenId,\n    contractId: d.contractId,\n    milestoneSeq: d.milestoneSeq,\n    creatorId: d.creatorId,\n    creatorAddress: d.creatorAddress,\n    taxon: d.taxon || 1,\n    metadataUri: d.metadataUri,\n    timestamp: payload.timestamp\n  }\n}];"
+      },
+      "id": "d4e5f6g7-4444-4000-8000-000000000011",
+      "name": "Parse: MCC Event",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 460]
+    },
+    {
+      "parameters": {
+        "jsCode": "// URGENT: Escrow about to expire\nconst data = $input.first().json;\n\nconsole.log(`[StudioLedger] ⚠️ ESCROW EXPIRING in ${data.hoursUntilExpiry} hours`);\nconsole.log(`[StudioLedger] Contract: ${data.contractId}, Milestone: ${data.milestoneSeq}`);\nconsole.log(`[StudioLedger] Amount: ${data.amount} ${data.currency}`);\nconsole.log(`[StudioLedger] Cancel after: ${data.cancelAfter}`);\nconsole.log(`[StudioLedger] Action: Both parties notified to complete or extend`);\n\nreturn [{\n  json: {\n    ...data,\n    notification: 'escrow_expiring_urgent',\n    urgency: data.hoursUntilExpiry <= 24 ? 'critical' : 'warning',\n    message: `Escrow expiring in ${data.hoursUntilExpiry}h — action required`\n  }\n}];"
+      },
+      "id": "d4e5f6g7-4444-4000-8000-000000000020",
+      "name": "Alert: Escrow Expiring",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [760, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// MCC credential minted — notify creator\nconst data = $input.first().json;\n\nconsole.log(`[StudioLedger] 🏆 MCC MINTED: ${data.tokenId}`);\nconsole.log(`[StudioLedger] Creator: ${data.creatorId}`);\nconsole.log(`[StudioLedger] Contract: ${data.contractId}, Milestone: ${data.milestoneSeq}`);\nconsole.log(`[StudioLedger] Metadata: ${data.metadataUri}`);\n\nreturn [{\n  json: {\n    ...data,\n    notification: 'mcc_credential_minted',\n    message: `New Minted Craft Credential issued — Token ID: ${data.tokenId}`\n  }\n}];"
+      },
+      "id": "d4e5f6g7-4444-4000-8000-000000000021",
+      "name": "Notify: MCC Minted",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [760, 460]
+    }
+  ],
+  "connections": {
+    "Webhook: escrow.expiring": {
+      "main": [[{ "node": "Parse: Escrow Alert", "type": "main", "index": 0 }]]
+    },
+    "Webhook: mcc.minted": {
+      "main": [[{ "node": "Parse: MCC Event", "type": "main", "index": 0 }]]
+    },
+    "Parse: Escrow Alert": {
+      "main": [[{ "node": "Alert: Escrow Expiring", "type": "main", "index": 0 }]]
+    },
+    "Parse: MCC Event": {
+      "main": [[{ "node": "Notify: MCC Minted", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    { "name": "studioledger" },
+    { "name": "escrow" },
+    { "name": "mcc" }
+  ]
+}

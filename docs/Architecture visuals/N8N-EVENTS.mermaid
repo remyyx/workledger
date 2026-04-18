@@ -1,0 +1,92 @@
+---
+title: StudioLedger — n8n Event Flow
+---
+flowchart LR
+  subgraph Triggers["🎯 Trigger Sources"]
+    auth["POST /api/auth"]
+    contracts["POST /api/contracts"]
+    milestones["POST /api/milestones/seq"]
+    release["releaseMilestoneAndAdvance()"]
+    mintFn["mintWorkCredentialOnRelease()"]
+    adminAction["Admin Action"]
+    schedule["Schedule (1h)"]
+  end
+
+  subgraph Events["⚡ 14 Event Types"]
+    e1["user.registered"]
+    e2["contract.created"]
+    e3["contract.funded"]
+    e4["contract.completed"]
+    e5["milestone.funded"]
+    e6["milestone.submitted"]
+    e7["milestone.approved"]
+    e8["milestone.released"]
+    e9["milestone.disputed"]
+    e10["dispute.opened"]
+    e11["dispute.escalated"]
+    e12["dispute.resolved"]
+    e13["mcc.minted"]
+    e14["escrow.expiring"]
+  end
+
+  subgraph Actions["📬 Downstream Actions"]
+    email["📧 Email Notifications"]
+    slack["💬 Slack Channels"]
+    db["🗄️ Supabase Updates"]
+    verify["🔍 XRPL Verification"]
+    panel["⚖️ Panel Assignment"]
+    payout["💰 Execute Payout"]
+  end
+
+  auth --> e1
+  contracts --> e2
+  milestones --> e3
+  milestones --> e5
+  milestones --> e6
+  milestones --> e7
+  milestones --> e9
+  release --> e4
+  release --> e8
+  mintFn --> e13
+  milestones --> e10
+  adminAction --> e11
+  adminAction --> e12
+  schedule --> e14
+
+  e1 --> email
+  e2 --> email
+  e2 --> slack
+  e3 --> email
+  e3 --> verify
+  e4 --> email
+  e4 --> slack
+  e4 --> db
+  e5 --> email
+  e6 --> email
+  e7 --> email
+  e8 --> email
+  e8 --> slack
+  e8 --> verify
+  e8 --> db
+  e9 --> email
+  e9 --> slack
+  e10 --> panel
+  e10 --> email
+  e11 --> email
+  e11 --> slack
+  e12 --> payout
+  e12 --> email
+  e12 --> db
+  e13 --> verify
+  e13 --> email
+  e13 --> db
+  e14 --> email
+  e14 --> slack
+
+  classDef trigger fill:#1a2744,stroke:#3b82f6,color:#E6EDF3
+  classDef event fill:#2d1f0a,stroke:#c9a84c,color:#E6EDF3
+  classDef action fill:#0a2e1f,stroke:#10b981,color:#E6EDF3
+
+  class auth,contracts,milestones,release,mintFn,adminAction,schedule trigger
+  class e1,e2,e3,e4,e5,e6,e7,e8,e9,e10,e11,e12,e13,e14 event
+  class email,slack,db,verify,panel,payout action

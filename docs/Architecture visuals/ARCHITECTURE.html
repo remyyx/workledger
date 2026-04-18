@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StudioLedger — Architecture</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0D1117; color: #E6EDF3; font-family: system-ui, sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
+  .header { padding: 16px 24px; border-bottom: 1px solid #30363D; display: flex; align-items: baseline; gap: 10px; }
+  .header h1 { font-size: 20px; font-weight: 800; color: #C9A84C; }
+  .header span { font-size: 12px; color: #8B949E; }
+  .container { flex: 1; display: flex; justify-content: center; align-items: flex-start; padding: 24px; overflow: auto; }
+  .mermaid { width: 100%; max-width: 1200px; }
+  .footer { text-align: center; padding: 12px; font-size: 10px; color: #8B949E40; border-top: 1px solid #30363D; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>StudioLedger</h1>
+  <span>Full Stack Architecture — 5 Layers</span>
+</div>
+<div class="container">
+<pre class="mermaid">
+graph TB
+  subgraph Frontend["FRONTEND — Next.js 14"]
+    nextjs["Next.js 14\nApp Router + RSC"]
+    dashboard["Dashboard\nRole-aware CR/MK"]
+    marketplace["Marketplace\nCreator Discovery"]
+    contractsUI["Contract Detail\nMilestone Flow"]
+    mccPortfolio["MCC Portfolio\nFederal Aesthetic"]
+    adminUI["Admin Panel\nPhase 2"]
+  end
+
+  subgraph API["API ROUTES"]
+    contractsAPI["/api/contracts\nCRUD + State Machine"]
+    proposalsAPI["/api/proposals\nCR to MK Negotiation"]
+    milestonesAPI["/api/milestones/seq\nfund/submit/approve/release"]
+    mccsAPI["/api/mccs\nCredential Queries"]
+    adminAPI["/api/admin/*\nAuth + Disputes + Audit"]
+    testAPI["/api/test/*\nMock Escrow/Mint"]
+  end
+
+  subgraph Services["SERVICE LAYER"]
+    escrow["Escrow Engine\nmilestone-escrow.ts"]
+    mint["MCC Mint\nmint-credential.ts"]
+    crypto["Crypto\nAES-256-GCM"]
+    messages["Contract Messages\nActivity Timeline"]
+    wallet["Wallet Manager\nPhilosophy A"]
+    n8nClient["n8n Client\n14 Event Types"]
+  end
+
+  subgraph External["EXTERNAL SYSTEMS"]
+    xrpl["XRPL Ledger\nEscrow + NFT + Payments"]
+    supabase["Supabase\nPostgres + RLS + Auth"]
+    pinata["Pinata/IPFS\nMCC Metadata"]
+    n8n["n8n Workflows\nAutomations"]
+    austrac["AUSTRAC\nVASP Compliance"]
+  end
+
+  subgraph Admin["ADMIN LAYER — migration 015"]
+    boss["Boss\nFull Access"]
+    dev["Dev\nDB + Architecture"]
+    accounting["Accounting\nFinancial Data"]
+    commercial["Commercial\nContracts + Disputes"]
+    protocol["Protocol\nUX/UI + Config"]
+  end
+
+  dashboard -->|fetch| contractsAPI
+  marketplace -->|offer| proposalsAPI
+  contractsUI -->|actions| milestonesAPI
+  mccPortfolio -->|query| mccsAPI
+  adminUI -->|manage| adminAPI
+
+  contractsAPI -->|fund| escrow
+  contractsAPI -->|encrypt| crypto
+  milestonesAPI -->|release| escrow
+  milestonesAPI -->|mint MCC| mint
+  milestonesAPI -->|log| messages
+  contractsAPI -->|events| n8nClient
+
+  escrow -->|EscrowCreate/Finish| xrpl
+  mint -->|NFTokenMint| xrpl
+  mint -->|metadata| pinata
+  wallet -->|wallet ops| xrpl
+  crypto -->|encrypted store| supabase
+  n8nClient -->|webhooks| n8n
+  messages -->|insert| supabase
+
+  adminAPI -->|admin_accounts| supabase
+  commercial -->|disputes| adminAPI
+  boss -->|all access| adminAPI
+
+  classDef frontend fill:#1e3a5f,stroke:#3b82f6,color:#E6EDF3
+  classDef api fill:#2d1f5e,stroke:#8b5cf6,color:#E6EDF3
+  classDef service fill:#3d2e0a,stroke:#f59e0b,color:#E6EDF3
+  classDef external fill:#0a2e1f,stroke:#10b981,color:#E6EDF3
+  classDef admin fill:#3d0a0a,stroke:#ef4444,color:#E6EDF3
+
+  class nextjs,dashboard,marketplace,contractsUI,mccPortfolio,adminUI frontend
+  class contractsAPI,proposalsAPI,milestonesAPI,mccsAPI,adminAPI,testAPI api
+  class escrow,mint,crypto,messages,wallet,n8nClient service
+  class xrpl,supabase,pinata,n8n,austrac external
+  class boss,dev,accounting,commercial,protocol admin
+</pre>
+</div>
+<div class="footer">StudioLedger Architecture — Session 17</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.0/mermaid.min.js"></script>
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+      darkMode: true,
+      background: '#0D1117',
+      primaryColor: '#1e3a5f',
+      primaryTextColor: '#E6EDF3',
+      primaryBorderColor: '#3b82f6',
+      lineColor: '#C9A84C',
+      secondaryColor: '#2d1f5e',
+      tertiaryColor: '#161B22',
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '13px',
+    },
+    flowchart: {
+      curve: 'basis',
+      padding: 20,
+      htmlLabels: true,
+      useMaxWidth: true,
+    },
+  });
+</script>
+</body>
+</html>

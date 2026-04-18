@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StudioLedger — Database Schema</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0D1117; color: #E6EDF3; font-family: system-ui, sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
+  .header { padding: 16px 24px; border-bottom: 1px solid #30363D; display: flex; align-items: baseline; gap: 10px; }
+  .header h1 { font-size: 20px; font-weight: 800; color: #C9A84C; }
+  .header span { font-size: 12px; color: #8B949E; }
+  .container { flex: 1; display: flex; justify-content: center; align-items: flex-start; padding: 24px; overflow: auto; }
+  .mermaid { width: 100%; }
+  .footer { text-align: center; padding: 12px; font-size: 10px; color: #8B949E40; border-top: 1px solid #30363D; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>StudioLedger</h1>
+  <span>Database Schema — 15 Tables, 15 Migrations</span>
+</div>
+<div class="container">
+<pre class="mermaid">
+erDiagram
+  users {
+    uuid id PK
+    text email UK
+    text display_name
+    text role
+    text xrpl_address
+    text encrypted_seed
+    timestamp created_at
+  }
+
+  contracts {
+    uuid id PK
+    uuid creator_id FK
+    uuid marketplace_id FK
+    text title
+    text status
+    text template
+    text currency
+    numeric total_amount
+    timestamp created_at
+  }
+
+  milestones {
+    uuid id PK
+    uuid contract_id FK
+    int sequence
+    text title
+    text status
+    numeric amount
+    text currency
+    text escrow_tx_hash
+    text deliverable_hash
+    text deliverable_media_url
+    timestamp released_at
+  }
+
+  contract_messages {
+    uuid id PK
+    uuid contract_id FK
+    uuid sender_id FK
+    text type
+    text content
+    jsonb metadata
+    timestamp created_at
+  }
+
+  nft_registry {
+    uuid id PK
+    uuid contract_id FK
+    uuid milestone_id FK
+    text nft_token_id
+    int taxon
+    text owner
+    text mint_tx_hash
+    text metadata_cid
+    timestamp created_at
+  }
+
+  dispute_events {
+    uuid id PK
+    uuid contract_id FK
+    uuid milestone_id FK
+    uuid initiated_by FK
+    text reason
+    text status
+    timestamp created_at
+  }
+
+  project_briefs {
+    uuid id PK
+    uuid marketplace_id FK
+    text title
+    text description
+    numeric budget
+    date deadline
+    timestamp created_at
+  }
+
+  proposals {
+    uuid id PK
+    uuid brief_id FK
+    uuid counterparty_id FK
+    text direction
+    jsonb terms
+    text status
+    timestamp created_at
+  }
+
+  proposal_rounds {
+    uuid id PK
+    uuid proposal_id FK
+    int round_number
+    jsonb changes
+    uuid proposed_by FK
+    timestamp created_at
+  }
+
+  admin_accounts {
+    uuid id PK
+    text email UK
+    text display_name
+    text admin_role
+    text password_hash
+    boolean is_active
+    uuid created_by FK
+    timestamp last_login_at
+  }
+
+  admin_sessions {
+    uuid id PK
+    uuid admin_id FK
+    text token_hash UK
+    text ip_address
+    text user_agent
+    timestamp expires_at
+  }
+
+  admin_audit_log {
+    uuid id PK
+    uuid admin_id FK
+    text action
+    text target_type
+    uuid target_id
+    jsonb details
+    text ip_address
+    timestamp created_at
+  }
+
+  admin_permissions {
+    uuid id PK
+    text admin_role
+    text resource
+    boolean can_read
+    boolean can_write
+    boolean can_delete
+  }
+
+  dispute_arbitrators {
+    uuid id PK
+    uuid user_id FK
+    text status
+    jsonb skill_domains
+    int mcc_count
+    int cases_completed
+    uuid approved_by FK
+  }
+
+  dispute_panels {
+    uuid id PK
+    uuid dispute_id FK
+    uuid arbitrator_id FK
+    text vote
+    text vote_reason
+    timestamp voted_at
+  }
+
+  users ||--o{ contracts : "creates"
+  contracts ||--|{ milestones : "contains"
+  contracts ||--o{ contract_messages : "has"
+  contracts ||--o{ nft_registry : "produces"
+  contracts ||--o{ dispute_events : "may have"
+  milestones ||--o{ nft_registry : "mints T1+T4"
+  users ||--o{ project_briefs : "posts"
+  project_briefs ||--o{ proposals : "receives"
+  proposals ||--|{ proposal_rounds : "negotiates"
+  admin_accounts ||--o{ admin_sessions : "authenticates"
+  admin_accounts ||--o{ admin_audit_log : "logs"
+  admin_accounts ||--o{ dispute_arbitrators : "approves"
+  dispute_events ||--o{ dispute_panels : "assigned"
+  dispute_arbitrators ||--o{ dispute_panels : "serves"
+  users ||--o| dispute_arbitrators : "may become"
+</pre>
+</div>
+<div class="footer">StudioLedger Database — 15 tables across migrations 001-015</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.0/mermaid.min.js"></script>
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+      darkMode: true,
+      background: '#0D1117',
+      primaryColor: '#161B22',
+      primaryTextColor: '#E6EDF3',
+      primaryBorderColor: '#C9A84C',
+      lineColor: '#C9A84C',
+      secondaryColor: '#1e3a5f',
+      tertiaryColor: '#161B22',
+      fontFamily: 'system-ui, sans-serif',
+      fontSize: '12px',
+    },
+    er: {
+      useMaxWidth: true,
+      layoutDirection: 'TB',
+      minEntityWidth: 160,
+      minEntityHeight: 40,
+      entityPadding: 15,
+    },
+  });
+</script>
+</body>
+</html>

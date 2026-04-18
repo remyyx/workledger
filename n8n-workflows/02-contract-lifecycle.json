@@ -1,0 +1,178 @@
+{
+  "name": "Contract Lifecycle",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "milestone.submitted",
+        "options": {
+          "responseMode": "onReceived"
+        }
+      },
+      "id": "b2c3d4e5-2222-4000-8000-000000000001",
+      "name": "Webhook: milestone.submitted",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 200],
+      "webhookId": "milestone-submitted"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "milestone.approved",
+        "options": {
+          "responseMode": "onReceived"
+        }
+      },
+      "id": "b2c3d4e5-2222-4000-8000-000000000002",
+      "name": "Webhook: milestone.approved",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 420],
+      "webhookId": "milestone-approved"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "milestone.released",
+        "options": {
+          "responseMode": "onReceived"
+        }
+      },
+      "id": "b2c3d4e5-2222-4000-8000-000000000003",
+      "name": "Webhook: milestone.released",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 640],
+      "webhookId": "milestone-released"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "contract.completed",
+        "options": {
+          "responseMode": "onReceived"
+        }
+      },
+      "id": "b2c3d4e5-2222-4000-8000-000000000004",
+      "name": "Webhook: contract.completed",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 860],
+      "webhookId": "contract-completed"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse milestone submitted event\nconst payload = $input.first().json.body || $input.first().json;\nconst d = payload.data || {};\n\nreturn [{\n  json: {\n    event: 'milestone.submitted',\n    contractId: d.contractId,\n    milestoneSeq: d.milestoneSeq,\n    creatorId: d.creatorId,\n    marketplaceId: d.marketplaceId,\n    deliverableHash: d.deliverableHash,\n    amount: d.amount,\n    currency: d.currency,\n    timestamp: payload.timestamp\n  }\n}];"
+      },
+      "id": "b2c3d4e5-2222-4000-8000-000000000010",
+      "name": "Parse: Submitted",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse milestone approved event\nconst payload = $input.first().json.body || $input.first().json;\nconst d = payload.data || {};\n\nreturn [{\n  json: {\n    event: 'milestone.approved',\n    contractId: d.contractId,\n    milestoneSeq: d.milestoneSeq,\n    creatorId: d.creatorId,\n    marketplaceId: d.marketplaceId,\n    amount: d.amount,\n    currency: d.currency,\n    timestamp: payload.timestamp\n  }\n}];"
+      },
+      "id": "b2c3d4e5-2222-4000-8000-000000000011",
+      "name": "Parse: Approved",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 420]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse milestone released event\nconst payload = $input.first().json.body || $input.first().json;\nconst d = payload.data || {};\n\nreturn [{\n  json: {\n    event: 'milestone.released',\n    contractId: d.contractId,\n    milestoneSeq: d.milestoneSeq,\n    creatorId: d.creatorId,\n    marketplaceId: d.marketplaceId,\n    amount: d.amount,\n    currency: d.currency,\n    txHash: d.txHash,\n    platformFee: d.platformFee,\n    mccTokenId: d.mccTokenId,\n    timestamp: payload.timestamp\n  }\n}];"
+      },
+      "id": "b2c3d4e5-2222-4000-8000-000000000012",
+      "name": "Parse: Released",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 640]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse contract completed event\nconst payload = $input.first().json.body || $input.first().json;\nconst d = payload.data || {};\n\nreturn [{\n  json: {\n    event: 'contract.completed',\n    contractId: d.contractId,\n    creatorId: d.creatorId,\n    marketplaceId: d.marketplaceId,\n    totalAmount: d.totalAmount,\n    currency: d.currency,\n    milestonesCompleted: d.milestonesCompleted,\n    timestamp: payload.timestamp\n  }\n}];"
+      },
+      "id": "b2c3d4e5-2222-4000-8000-000000000013",
+      "name": "Parse: Completed",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 860]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Notify marketplace: deliverable submitted, ready for review\nconst data = $input.first().json;\n\nconsole.log(`[StudioLedger] NOTIFY MARKETPLACE: Milestone ${data.milestoneSeq} submitted for contract ${data.contractId}`);\nconsole.log(`[StudioLedger] Deliverable hash: ${data.deliverableHash}`);\nconsole.log(`[StudioLedger] Action required: Review and approve/reject`);\n\nreturn [{\n  json: {\n    ...data,\n    notification: 'marketplace_review_needed',\n    message: `Milestone ${data.milestoneSeq} submitted — awaiting your review`\n  }\n}];"
+      },
+      "id": "b2c3d4e5-2222-4000-8000-000000000020",
+      "name": "Notify: Review Needed",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [760, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Notify creator: milestone approved, payment incoming\nconst data = $input.first().json;\n\nconsole.log(`[StudioLedger] NOTIFY CREATOR: Milestone ${data.milestoneSeq} approved for contract ${data.contractId}`);\nconsole.log(`[StudioLedger] Payment of ${data.amount} ${data.currency} incoming`);\n\nreturn [{\n  json: {\n    ...data,\n    notification: 'creator_payment_incoming',\n    message: `Milestone ${data.milestoneSeq} approved — ${data.amount} ${data.currency} payment incoming`\n  }\n}];"
+      },
+      "id": "b2c3d4e5-2222-4000-8000-000000000021",
+      "name": "Notify: Payment Incoming",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [760, 420]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Notify both parties: funds released + MCC minted\nconst data = $input.first().json;\n\nconsole.log(`[StudioLedger] FUNDS RELEASED: ${data.amount} ${data.currency} for milestone ${data.milestoneSeq}`);\nconsole.log(`[StudioLedger] TX Hash: ${data.txHash}`);\nconsole.log(`[StudioLedger] Platform fee: ${data.platformFee}`);\nif (data.mccTokenId) {\n  console.log(`[StudioLedger] MCC minted: ${data.mccTokenId}`);\n}\n\nreturn [{\n  json: {\n    ...data,\n    notification: 'funds_released',\n    message: `${data.amount} ${data.currency} released — MCC credential issued`\n  }\n}];"
+      },
+      "id": "b2c3d4e5-2222-4000-8000-000000000022",
+      "name": "Notify: Funds Released",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [760, 640]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Contract fully completed — celebrate!\nconst data = $input.first().json;\n\nconsole.log(`[StudioLedger] CONTRACT COMPLETED: ${data.contractId}`);\nconsole.log(`[StudioLedger] Total: ${data.totalAmount} ${data.currency}`);\nconsole.log(`[StudioLedger] Milestones: ${data.milestonesCompleted}`);\n\nreturn [{\n  json: {\n    ...data,\n    notification: 'contract_completed',\n    message: `Contract ${data.contractId} completed — all milestones delivered!`\n  }\n}];"
+      },
+      "id": "b2c3d4e5-2222-4000-8000-000000000023",
+      "name": "Notify: Contract Done",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [760, 860]
+    }
+  ],
+  "connections": {
+    "Webhook: milestone.submitted": {
+      "main": [[{ "node": "Parse: Submitted", "type": "main", "index": 0 }]]
+    },
+    "Webhook: milestone.approved": {
+      "main": [[{ "node": "Parse: Approved", "type": "main", "index": 0 }]]
+    },
+    "Webhook: milestone.released": {
+      "main": [[{ "node": "Parse: Released", "type": "main", "index": 0 }]]
+    },
+    "Webhook: contract.completed": {
+      "main": [[{ "node": "Parse: Completed", "type": "main", "index": 0 }]]
+    },
+    "Parse: Submitted": {
+      "main": [[{ "node": "Notify: Review Needed", "type": "main", "index": 0 }]]
+    },
+    "Parse: Approved": {
+      "main": [[{ "node": "Notify: Payment Incoming", "type": "main", "index": 0 }]]
+    },
+    "Parse: Released": {
+      "main": [[{ "node": "Notify: Funds Released", "type": "main", "index": 0 }]]
+    },
+    "Parse: Completed": {
+      "main": [[{ "node": "Notify: Contract Done", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": [
+    { "name": "studioledger" },
+    { "name": "contracts" }
+  ]
+}

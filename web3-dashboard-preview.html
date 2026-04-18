@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WorkLedger — Web3 Dashboard Preview</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-deep: #080c14;
+    --bg-sidebar: #0a1020;
+    --bg-surface: rgba(255,255,255,0.04);
+    --bg-surface-hover: rgba(255,255,255,0.07);
+    --border: rgba(255,255,255,0.08);
+    --border-hover: rgba(255,255,255,0.14);
+    --text-primary: #ffffff;
+    --text-secondary: rgba(255,255,255,0.5);
+    --text-tertiary: rgba(255,255,255,0.3);
+    --text-muted: rgba(255,255,255,0.15);
+    --accent-cyan: #00d2ff;
+    --accent-blue: #3a7bd5;
+    --accent-purple: #a855f7;
+    --accent-green: #10b981;
+    --accent-amber: #fbbf24;
+    --accent-red: #ef4444;
+    --gradient-primary: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
+    --gradient-purple: linear-gradient(135deg, #a855f7 0%, #6366f1 100%);
+    --gradient-green: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
+    --gradient-amber: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+    --gradient-progress: linear-gradient(90deg, #00d2ff, #a855f7);
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg-deep);
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+    height: 100vh;
+  }
+
+  .layout { display: flex; height: 100vh; }
+
+  /* ── Sidebar ──────────────────────────── */
+  .sidebar {
+    width: 220px;
+    min-height: 100vh;
+    background: linear-gradient(180deg, #0a1020 0%, #060a14 100%);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+  }
+
+  .sidebar-logo {
+    padding: 20px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--gradient-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 20px rgba(0,210,255,0.3);
+    font-weight: 800;
+    font-size: 16px;
+  }
+
+  .logo-text { font-weight: 700; font-size: 15px; letter-spacing: -0.01em; }
+  .logo-sub { display: block; font-size: 10px; color: var(--text-tertiary); }
+
+  .sidebar-nav { flex: 1; padding: 12px 8px; }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: inherit;
+    margin-bottom: 2px;
+    transition: all 0.15s;
+    background: transparent;
+    color: var(--text-secondary);
+    border-left: 2px solid transparent;
+  }
+
+  .nav-item:hover { background: var(--bg-surface); color: rgba(255,255,255,0.7); }
+
+  .nav-item.active {
+    background: rgba(0,210,255,0.08);
+    color: var(--accent-cyan);
+    border-left-color: var(--accent-cyan);
+    box-shadow: inset 0 0 20px rgba(0,210,255,0.05);
+  }
+
+  .nav-item svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+  .sidebar-user {
+    padding: 16px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .user-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--gradient-purple);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  .user-name { font-size: 13px; font-weight: 500; }
+  .user-role { font-size: 11px; color: var(--text-tertiary); }
+
+  /* ── Main ─────────────────────────────── */
+  .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
+  .topbar {
+    height: 56px;
+    background: rgba(255,255,255,0.02);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  .topbar h1 { font-size: 18px; font-weight: 600; }
+
+  .topbar-right { display: flex; align-items: center; gap: 16px; }
+
+  .network-badge {
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 600;
+    background: rgba(251,191,36,0.1);
+    color: var(--accent-amber);
+    border: 1px solid rgba(251,191,36,0.2);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .network-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent-amber);
+    box-shadow: 0 0 6px var(--accent-amber);
+  }
+
+  .bell-btn {
+    position: relative;
+    padding: 4px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-secondary);
+  }
+
+  .bell-btn svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+  .bell-dot {
+    position: absolute;
+    top: 2px; right: 2px;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent-red);
+    box-shadow: 0 0 8px rgba(239,68,68,0.6);
+  }
+
+  /* ── Content ──────────────────────────── */
+  .content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    background:
+      radial-gradient(ellipse at 20% 0%, rgba(0,210,255,0.03) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 100%, rgba(168,85,247,0.03) 0%, transparent 50%);
+  }
+
+  /* ── Glass Card ───────────────────────── */
+  .glass-card {
+    background: var(--bg-surface);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .glass-card:hover {
+    border-color: var(--border-hover);
+  }
+
+  .glass-card .top-accent {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    border-radius: 16px 16px 0 0;
+  }
+
+  /* ── Stats Grid ───────────────────────── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .stat-card { position: relative; }
+  .stat-card:hover { box-shadow: 0 0 30px -8px var(--glow-color, rgba(0,210,255,0.15)); }
+
+  .stat-label { color: var(--text-secondary); font-size: 13px; margin-bottom: 6px; }
+
+  .stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: -0.02em;
+  }
+
+  .stat-subtext { color: var(--accent-green); font-size: 12px; margin-top: 6px; }
+
+  .stat-icon {
+    padding: 8px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+    color: rgba(255,255,255,0.2);
+  }
+
+  .stat-icon svg { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+  /* ── Grid Layout ──────────────────────── */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+  }
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+
+  .section-title { font-size: 16px; font-weight: 600; }
+
+  .view-all {
+    background: none;
+    border: none;
+    color: var(--accent-cyan);
+    font-size: 13px;
+    cursor: pointer;
+    font-weight: 500;
+    font-family: inherit;
+  }
+
+  .card-stack { display: flex; flex-direction: column; gap: 12px; }
+
+  /* ── Contract Card ────────────────────── */
+  .contract-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+  .contract-title { font-weight: 600; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .contract-client { color: var(--text-secondary); font-size: 13px; margin-top: 2px; }
+
+  .contract-amount-row { display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
+  .contract-amount { font-weight: 600; font-family: 'JetBrains Mono', monospace; }
+  .contract-currency { color: var(--text-secondary); font-weight: 400; font-size: 12px; }
+  .contract-milestones { color: var(--text-secondary); font-size: 12px; }
+
+  .progress-track { width: 100%; height: 4px; background: rgba(255,255,255,0.06); border-radius: 9999px; margin-top: 12px; }
+  .progress-bar {
+    height: 4px;
+    border-radius: 9999px;
+    background: var(--gradient-progress);
+    transition: width 0.5s ease;
+    box-shadow: 0 0 8px rgba(0,210,255,0.4);
+  }
+
+  .contract-meta { margin-top: 12px; display: flex; gap: 12px; font-size: 11px; color: var(--text-tertiary); }
+  .contract-meta span { text-transform: capitalize; }
+
+  /* ── Status Badge ─────────────────────── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: capitalize;
+    letter-spacing: 0.02em;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .badge-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+  }
+
+  .badge-active { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
+  .badge-active .badge-dot { background: #34d399; box-shadow: 0 0 6px #34d399; }
+
+  .badge-funded { background: rgba(251,191,36,0.15); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
+  .badge-funded .badge-dot { background: #fbbf24; box-shadow: 0 0 6px #fbbf24; }
+
+  .badge-completed { background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.3); }
+  .badge-completed .badge-dot { background: #60a5fa; box-shadow: 0 0 6px #60a5fa; }
+
+  .badge-submitted { background: rgba(168,85,247,0.15); color: #c084fc; border: 1px solid rgba(168,85,247,0.3); }
+  .badge-submitted .badge-dot { background: #c084fc; box-shadow: 0 0 6px #c084fc; }
+
+  .badge-draft { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.4); border: 1px solid rgba(255,255,255,0.1); }
+  .badge-draft .badge-dot { background: rgba(255,255,255,0.4); }
+
+  /* ── NFT Card ─────────────────────────── */
+  .nft-card {
+    background: var(--bg-surface);
+    backdrop-filter: blur(24px);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .nft-card:hover { border-color: var(--border-hover); }
+
+  .nft-bar { height: 3px; }
+  .nft-body { padding: 16px; }
+  .nft-taxon { font-size: 11px; font-weight: 600; }
+  .nft-name { font-weight: 600; font-size: 14px; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .nft-desc { color: var(--text-secondary); font-size: 13px; margin-top: 2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .nft-meta { margin-top: 10px; }
+  .nft-stars { font-size: 12px; margin-bottom: 4px; }
+  .star-on { color: var(--accent-amber); }
+  .star-off { color: var(--text-muted); }
+  .nft-payment { color: var(--text-secondary); font-size: 12px; font-family: 'JetBrains Mono', monospace; }
+  .nft-date { color: var(--text-tertiary); font-size: 11px; margin-top: 10px; }
+
+  /* ── Quick Actions ────────────────────── */
+  .quick-actions { margin-top: 32px; }
+  .action-buttons { display: flex; gap: 12px; flex-wrap: wrap; }
+
+  .btn-primary-glow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    background: var(--gradient-primary);
+    color: #fff;
+    font-weight: 600;
+    font-size: 14px;
+    font-family: inherit;
+    box-shadow: 0 0 20px rgba(0,210,255,0.3);
+    transition: all 0.15s;
+  }
+
+  .btn-primary-glow:hover { box-shadow: 0 0 30px rgba(0,210,255,0.45); transform: translateY(-1px); }
+
+  .btn-secondary-glass {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    color: rgba(255,255,255,0.7);
+    font-weight: 500;
+    font-size: 14px;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+
+  .btn-secondary-glass:hover { background: var(--bg-surface-hover); border-color: var(--border-hover); }
+
+  .btn-icon svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+  /* ── Scrollbar ────────────────────────── */
+  .content::-webkit-scrollbar { width: 6px; }
+  .content::-webkit-scrollbar-track { background: transparent; }
+  .content::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+  .content::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+  @media (max-width: 1024px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .main-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">W</div>
+      <div>
+        <span class="logo-text">WorkLedger</span>
+        <span class="logo-sub">by ACI</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-item active">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+        Dashboard
+      </button>
+      <button class="nav-item">
+        <svg viewBox="0 0 24 24"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/><path d="M4 6v12c0 1.1.9 2 2 2h14v-4"/><circle cx="18" cy="12" r="2"/></svg>
+        Wallet
+      </button>
+      <button class="nav-item">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Contracts
+      </button>
+      <button class="nav-item">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
+        NFTs
+      </button>
+      <button class="nav-item">
+        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Profile
+      </button>
+      <button class="nav-item">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Settings
+      </button>
+    </nav>
+
+    <div class="sidebar-user">
+      <div class="user-avatar">RR</div>
+      <div>
+        <div class="user-name">Remy Ruozzi</div>
+        <div class="user-role">Freelancer</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <header class="topbar">
+      <h1>Dashboard</h1>
+      <div class="topbar-right">
+        <span class="network-badge">
+          <span class="network-dot"></span>
+          testnet
+        </span>
+        <button class="bell-btn">
+          <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="bell-dot"></span>
+        </button>
+      </div>
+    </header>
+
+    <div class="content">
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="glass-card stat-card" style="--glow-color: rgba(0,210,255,0.15);">
+          <div class="top-accent" style="background: var(--gradient-primary);"></div>
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div>
+              <div class="stat-label">Total Earned</div>
+              <div class="stat-value">$6,250</div>
+              <div class="stat-subtext">+12% this month</div>
+            </div>
+            <div class="stat-icon">
+              <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-card stat-card" style="--glow-color: rgba(168,85,247,0.15);">
+          <div class="top-accent" style="background: var(--gradient-purple);"></div>
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div>
+              <div class="stat-label">Active Contracts</div>
+              <div class="stat-value">2</div>
+            </div>
+            <div class="stat-icon">
+              <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-card stat-card" style="--glow-color: rgba(251,191,36,0.15);">
+          <div class="top-accent" style="background: var(--gradient-amber);"></div>
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div>
+              <div class="stat-label">Escrow Held</div>
+              <div class="stat-value">$3,700</div>
+            </div>
+            <div class="stat-icon">
+              <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-card stat-card" style="--glow-color: rgba(16,185,129,0.15);">
+          <div class="top-accent" style="background: var(--gradient-green);"></div>
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div>
+              <div class="stat-label">PoW NFTs</div>
+              <div class="stat-value">3</div>
+            </div>
+            <div class="stat-icon">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Grid -->
+      <div class="main-grid">
+        <!-- Active Contracts -->
+        <div>
+          <div class="section-header">
+            <h2 class="section-title">Active Contracts</h2>
+            <button class="view-all">View all</button>
+          </div>
+          <div class="card-stack">
+            <!-- Contract 1 -->
+            <div class="glass-card" style="cursor:pointer;">
+              <div class="contract-header">
+                <div style="flex:1;min-width:0;">
+                  <div class="contract-title">E-Commerce Platform Redesign</div>
+                  <div class="contract-client">TechCo Inc.</div>
+                </div>
+                <span class="badge badge-active"><span class="badge-dot"></span>active</span>
+              </div>
+              <div class="contract-amount-row">
+                <span class="contract-amount">3,000.00 <span class="contract-currency">RLUSD</span></span>
+                <span class="contract-milestones">1/3 milestones</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-bar" style="width: 33%;"></div>
+              </div>
+              <div class="contract-meta">
+                <span>milestone</span>
+                <span>Jan 20, 2025</span>
+              </div>
+            </div>
+
+            <!-- Contract 2 -->
+            <div class="glass-card" style="cursor:pointer;">
+              <div class="contract-header">
+                <div style="flex:1;min-width:0;">
+                  <div class="contract-title">Brand Identity Package</div>
+                  <div class="contract-client">StartupXYZ</div>
+                </div>
+                <span class="badge badge-funded"><span class="badge-dot"></span>funded</span>
+              </div>
+              <div class="contract-amount-row">
+                <span class="contract-amount">1,500.00 <span class="contract-currency">RLUSD</span></span>
+                <span class="contract-milestones">0/1 milestones</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-bar" style="width: 0%;"></div>
+              </div>
+              <div class="contract-meta">
+                <span>fixed price</span>
+                <span>Feb 10, 2025</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- NFTs -->
+        <div>
+          <div class="section-header">
+            <h2 class="section-title">Recent NFTs</h2>
+            <button class="view-all">View all</button>
+          </div>
+          <div class="card-stack">
+            <div class="nft-card">
+              <div class="nft-bar" style="background: var(--gradient-primary);"></div>
+              <div class="nft-body">
+                <div class="nft-taxon" style="color: var(--accent-cyan);">Proof of Work</div>
+                <div class="nft-name">Design System & Wireframes</div>
+                <div class="nft-desc">Complete UI kit for TechCo e-commerce redesign</div>
+                <div class="nft-meta">
+                  <div class="nft-stars"><span class="star-on">★★★★★</span></div>
+                  <div class="nft-payment">800 RLUSD</div>
+                </div>
+                <div class="nft-date">Minted Feb 14, 2025</div>
+              </div>
+            </div>
+
+            <div class="nft-card">
+              <div class="nft-bar" style="background: var(--gradient-green);"></div>
+              <div class="nft-body">
+                <div class="nft-taxon" style="color: var(--accent-green);">License</div>
+                <div class="nft-name">Fitness App UI License</div>
+                <div class="nft-desc">Non-exclusive license for fitness app UI designs</div>
+                <div class="nft-meta"></div>
+                <div class="nft-date">Minted Jan 29, 2025</div>
+              </div>
+            </div>
+
+            <div class="nft-card">
+              <div class="nft-bar" style="background: var(--gradient-primary);"></div>
+              <div class="nft-body">
+                <div class="nft-taxon" style="color: var(--accent-cyan);">Proof of Work</div>
+                <div class="nft-name">Mobile App Prototype</div>
+                <div class="nft-desc">Interactive Figma prototype for fitness tracking app</div>
+                <div class="nft-meta">
+                  <div class="nft-stars"><span class="star-on">★★★★</span><span class="star-off">★</span></div>
+                  <div class="nft-payment">2,000 XRP</div>
+                </div>
+                <div class="nft-date">Minted Jan 29, 2025</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="quick-actions">
+        <div class="section-header">
+          <h2 class="section-title">Quick Actions</h2>
+        </div>
+        <div class="action-buttons">
+          <button class="btn-primary-glow">
+            <span class="btn-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+            New Contract
+          </button>
+          <button class="btn-secondary-glass">
+            <span class="btn-icon"><svg viewBox="0 0 24 24"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"/><path d="M4 6v12c0 1.1.9 2 2 2h14v-4"/><circle cx="18" cy="12" r="2"/></svg></span>
+            View Wallet
+          </button>
+          <button class="btn-secondary-glass">
+            <span class="btn-icon"><svg viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg></span>
+            My NFTs
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

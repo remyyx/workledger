@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StudioLedger — Architecture Dashboard</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #0D1117; --card: #161B22; --border: #30363D;
+    --text: #E6EDF3; --muted: #8B949E; --gold: #C9A84C;
+    --blue: #58A6FF; --green: #3FB950; --red: #F85149;
+    --purple: #BC8CFF; --orange: #F0883E; --cyan: #39D2C0;
+  }
+  body { background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, sans-serif; }
+
+  /* Header */
+  .header { padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: baseline; gap: 12px; }
+  .header h1 { font-size: 20px; font-weight: 800; color: var(--gold); letter-spacing: -0.02em; }
+  .header span { font-size: 12px; color: var(--muted); }
+
+  /* Stats bar */
+  .stats { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; padding: 16px 24px; }
+  .stat { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 8px; text-align: center; }
+  .stat-val { font-size: 18px; font-weight: 700; color: var(--gold); }
+  .stat-label { font-size: 10px; font-weight: 600; color: var(--text); margin-top: 2px; }
+  .stat-sub { font-size: 9px; color: var(--muted); }
+
+  /* Main tabs */
+  .main-tabs { display: flex; gap: 4px; padding: 0 24px 16px; }
+  .main-tab { padding: 8px 18px; border-radius: 8px; border: 1px solid var(--border); background: var(--card);
+    color: var(--muted); cursor: pointer; font-size: 13px; font-weight: 400; transition: all 0.2s; }
+  .main-tab.active { border-color: var(--gold); background: rgba(201,168,76,0.13); color: var(--gold); font-weight: 600; }
+  .main-tab:hover:not(.active) { border-color: var(--muted); }
+
+  /* Content area */
+  .content { padding: 0 24px 24px; }
+  .panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; min-height: 500px; display: none; }
+  .panel.active { display: block; }
+
+  /* Sub tabs */
+  .sub-tabs { display: flex; gap: 4px; margin-bottom: 16px; }
+  .sub-tab { padding: 6px 14px; border-radius: 6px; border: 1px solid transparent; background: transparent;
+    color: var(--muted); cursor: pointer; font-size: 12px; transition: all 0.15s; }
+  .sub-tab.active { border-color: var(--gold); background: rgba(201,168,76,0.1); color: var(--gold); font-weight: 600; }
+
+  /* SVG interactivity */
+  .node-rect { transition: all 0.2s; cursor: pointer; }
+  .node-rect:hover { filter: brightness(1.2); }
+  .conn-path { transition: all 0.2s; }
+
+  /* Detail tooltip */
+  .detail-panel { position: absolute; top: 8px; right: 8px; background: var(--card); border: 1px solid rgba(201,168,76,0.27);
+    border-radius: 10px; padding: 12px 16px; max-width: 240px; box-shadow: 0 4px 20px rgba(201,168,76,0.07);
+    font-size: 11px; display: none; z-index: 10; }
+  .detail-panel.show { display: block; }
+  .detail-layer { font-weight: 600; margin-bottom: 4px; }
+  .detail-name { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+  .detail-desc { color: var(--muted); line-height: 1.5; margin-bottom: 8px; }
+  .detail-conn { font-size: 10px; color: var(--muted); margin-bottom: 3px; }
+  .detail-conn b { color: var(--gold); }
+
+  /* n8n layout */
+  .n8n-container { display: flex; gap: 0; height: 560px; }
+  .n8n-sidebar { width: 210px; border-right: 1px solid var(--border); overflow-y: auto; padding: 8px 0; flex-shrink: 0; }
+  .n8n-main { flex: 1; padding: 16px; overflow-y: auto; }
+  .n8n-cat-label { padding: 6px 12px; font-size: 9px; font-weight: 700; letter-spacing: 0.08em; }
+  .n8n-event { padding: 6px 12px 6px 18px; cursor: pointer; border-left: 2px solid transparent; transition: all 0.15s; }
+  .n8n-event:hover { background: rgba(255,255,255,0.03); }
+  .n8n-event.active { border-left-color: var(--gold); background: rgba(201,168,76,0.08); }
+  .n8n-event-name { font-size: 11px; font-family: monospace; color: var(--muted); }
+  .n8n-event.active .n8n-event-name { color: var(--text); font-weight: 600; }
+
+  /* n8n lifecycle bar */
+  .lifecycle-bar { display: flex; flex-wrap: wrap; gap: 3px; padding: 8px 12px; margin-bottom: 8px; }
+  .lifecycle-step { font-size: 9px; font-family: monospace; padding: 2px 6px; border-radius: 4px; cursor: pointer;
+    border: 1px solid transparent; transition: all 0.15s; }
+  .lifecycle-step:hover { background: rgba(255,255,255,0.05); }
+  .lifecycle-step.active { border-color: currentColor; background: rgba(201,168,76,0.15); }
+  .lifecycle-arrow { color: var(--border); font-size: 8px; align-self: center; }
+
+  /* n8n detail */
+  .n8n-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+  .n8n-meta-box { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
+  .n8n-meta-label { font-size: 9px; color: var(--muted); font-weight: 600; letter-spacing: 0.05em; margin-bottom: 4px; }
+  .n8n-meta-val { font-size: 11px; font-family: monospace; line-height: 1.5; }
+
+  .n8n-workflow-box { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .n8n-workflow-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .n8n-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px rgba(63,185,80,0.4); }
+
+  /* n8n legend */
+  .n8n-legend { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; padding: 10px 12px;
+    background: var(--bg); border-radius: 8px; border: 1px solid var(--border); }
+  .n8n-legend-item { display: flex; align-items: center; gap: 4px; font-size: 9px; color: var(--muted); }
+  .n8n-legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+
+  /* DB view */
+  .db-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .db-group { background: var(--bg); border-radius: 10px; padding: 14px; }
+  .db-group-label { font-size: 11px; font-weight: 700; margin-bottom: 10px; letter-spacing: 0.05em; }
+  .db-table { padding: 6px 8px; margin-bottom: 4px; border-radius: 6px; cursor: pointer;
+    border: 1px solid transparent; transition: all 0.15s; }
+  .db-table:hover { background: rgba(255,255,255,0.03); }
+  .db-table.expanded { border-color: rgba(255,255,255,0.1); }
+  .db-table-name { font-size: 12px; font-weight: 600; font-family: monospace; color: var(--text); }
+  .db-table-cols { font-size: 10px; color: var(--muted); margin-top: 4px; line-height: 1.6; font-family: monospace; display: none; }
+  .db-table.expanded .db-table-cols { display: block; }
+
+  /* Fee flow */
+  .fee-step { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 8px; cursor: pointer;
+    background: var(--card); border: 1px solid var(--border); margin-bottom: 3px; transition: all 0.2s; position: relative; overflow: hidden; }
+  .fee-step.active { border-color: rgba(201,168,76,0.27); background: rgba(201,168,76,0.08); }
+  .fee-icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 14px; position: relative; flex-shrink: 0; }
+  .fee-label { font-size: 12px; font-weight: 600; }
+  .fee-detail { font-size: 10px; color: var(--muted); margin-top: 2px; display: none; }
+  .fee-step.active .fee-detail { display: block; }
+  .fee-step.active .fee-label { color: var(--gold); }
+  .fee-num { font-size: 10px; color: var(--muted); font-family: monospace; }
+  .fee-bar { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, rgba(201,168,76,0.03), rgba(201,168,76,0.07)); }
+
+  /* Footer */
+  .footer { text-align: center; padding: 16px; font-size: 10px; color: var(--muted); }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .stats { grid-template-columns: repeat(3, 1fr); }
+    .db-grid { grid-template-columns: 1fr; }
+    .n8n-container { flex-direction: column; height: auto; }
+    .n8n-sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border); max-height: 200px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>StudioLedger</h1>
+  <span>Architecture Dashboard — Session 17</span>
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="stat-val">216</div><div class="stat-label">Tests</div><div class="stat-sub">12 suites</div></div>
+  <div class="stat"><div class="stat-val">15</div><div class="stat-label">Migrations</div><div class="stat-sub">001→015</div></div>
+  <div class="stat"><div class="stat-val">24</div><div class="stat-label">API Routes</div><div class="stat-sub">REST + test</div></div>
+  <div class="stat"><div class="stat-val">0.98%</div><div class="stat-label">Fee</div><div class="stat-sub">XRPL native</div></div>
+  <div class="stat"><div class="stat-val">4</div><div class="stat-label">MCC Taxons</div><div class="stat-sub">T1-T4</div></div>
+  <div class="stat"><div class="stat-val">5</div><div class="stat-label">Admin Roles</div><div class="stat-sub">migration 015</div></div>
+</div>
+
+<div class="main-tabs">
+  <button class="main-tab active" data-panel="arch">Architecture</button>
+  <button class="main-tab" data-panel="n8n">n8n Workflows</button>
+  <button class="main-tab" data-panel="lifecycle">Contract Lifecycle</button>
+  <button class="main-tab" data-panel="db">Database Schema</button>
+  <button class="main-tab" data-panel="fee">Fee Flow</button>
+</div>
+
+<div class="content">
+
+<!-- ═══════ ARCHITECTURE PANEL ═══════ -->
+<div class="panel active" id="panel-arch">
+  <div style="position:relative">
+    <svg id="arch-svg" width="100%" viewBox="0 0 750 600" style="overflow:visible"></svg>
+    <div class="detail-panel" id="arch-detail"></div>
+  </div>
+</div>
+
+<!-- ═══════ N8N WORKFLOWS PANEL ═══════ -->
+<div class="panel" id="panel-n8n">
+  <div class="n8n-container">
+    <div class="n8n-sidebar" id="n8n-sidebar"></div>
+    <div class="n8n-main" id="n8n-main">
+      <div style="color:var(--muted);font-size:13px;padding:40px;text-align:center">Select an event from the sidebar to view its n8n workflow.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ LIFECYCLE PANEL ═══════ -->
+<div class="panel" id="panel-lifecycle">
+  <div style="font-size:11px;color:var(--muted);margin-bottom:12px">Click a state to see its transitions. Each milestone follows this path independently.</div>
+  <svg id="lifecycle-svg" width="100%" viewBox="0 0 620 280" style="overflow:visible"></svg>
+</div>
+
+<!-- ═══════ DATABASE PANEL ═══════ -->
+<div class="panel" id="panel-db">
+  <div class="db-grid" id="db-grid"></div>
+</div>
+
+<!-- ═══════ FEE FLOW PANEL ═══════ -->
+<div class="panel" id="panel-fee">
+  <div style="font-size:11px;color:var(--muted);margin-bottom:16px">The 0.98% fee flow from escrow funding through MCC minting. Click any step for details.</div>
+  <div id="fee-flow"></div>
+</div>
+
+</div>
+
+<div class="footer">Interactive — click nodes, states, and events to explore. Built from 17 sessions of StudioLedger architecture.</div>
+
+<script>
+// ─── Data ─────────────────────────────────────────────
+const LAYERS = [
+  { id:"frontend", label:"FRONTEND", color:"#3B82F6", y:0, nodes:[
+    {id:"nextjs",label:"Next.js 14",desc:"App Router, RSC, Server Actions"},
+    {id:"dashboard",label:"Dashboard",desc:"/dashboard — role-aware (CR/MK)"},
+    {id:"marketplace",label:"Marketplace",desc:"Creator discovery, MakeOfferModal"},
+    {id:"contracts-ui",label:"Contract Detail",desc:"Milestone flow, activity timeline"},
+    {id:"mcc-portfolio",label:"MCC Portfolio",desc:"Credential cards, federal aesthetic"},
+    {id:"admin-ui",label:"Admin Panel",desc:"Internal dashboard (Phase 2)"},
+  ]},
+  { id:"api", label:"API ROUTES", color:"#8B5CF6", y:1, nodes:[
+    {id:"contracts-api",label:"/api/contracts",desc:"CRUD + state machine transitions"},
+    {id:"proposals-api",label:"/api/proposals",desc:"CR→MK + MK→CR negotiation"},
+    {id:"milestones-api",label:"/api/milestones/[seq]",desc:"fund, submit, approve, release, dispute"},
+    {id:"mccs-api",label:"/api/mccs",desc:"Credential queries + portfolio"},
+    {id:"admin-api",label:"/api/admin/*",desc:"Auth, disputes, audit (Phase 2)"},
+    {id:"test-api",label:"/api/test/*",desc:"Mock escrow, mock mint (dev only)"},
+  ]},
+  { id:"services", label:"SERVICE LAYER", color:"#F59E0B", y:2, nodes:[
+    {id:"escrow",label:"Escrow Engine",desc:"milestone-escrow.ts — fund/release/refund"},
+    {id:"mint",label:"MCC Mint",desc:"mint-credential.ts — T1+T4 on release"},
+    {id:"crypto",label:"Crypto",desc:"AES-256-GCM — preimages + wallet seeds"},
+    {id:"messages",label:"Contract Messages",desc:"Activity timeline, system events"},
+    {id:"wallet",label:"Wallet Manager",desc:"Philosophy A — platform-managed XRPL"},
+    {id:"n8n-client",label:"n8n Client",desc:"14 event types → workflow triggers"},
+  ]},
+  { id:"external", label:"EXTERNAL SYSTEMS", color:"#10B981", y:3, nodes:[
+    {id:"xrpl",label:"XRPL Ledger",desc:"Escrow, NFTokenMint, Payments, Trust Lines"},
+    {id:"supabase",label:"Supabase",desc:"Postgres + RLS + Auth (Google OAuth)"},
+    {id:"pinata",label:"Pinata/IPFS",desc:"MCC metadata storage"},
+    {id:"n8n",label:"n8n Workflows",desc:"Notifications, automations, webhooks"},
+    {id:"austrac",label:"AUSTRAC",desc:"Compliance reporting (VASP registered)"},
+  ]},
+  { id:"admin", label:"ADMIN LAYER", color:"#EF4444", y:4, nodes:[
+    {id:"boss",label:"Boss",desc:"Full access — remy@studioledger.ai"},
+    {id:"dev",label:"Dev",desc:"Database + architecture"},
+    {id:"accounting",label:"Accounting",desc:"Financial data + reports"},
+    {id:"commercial",label:"Commercial",desc:"Contract design + disputes"},
+    {id:"protocol",label:"Protocol",desc:"UX/UI + platform config"},
+  ]},
+];
+
+const CONNS = [
+  {from:"dashboard",to:"contracts-api",label:"fetch"},{from:"marketplace",to:"proposals-api",label:"offer"},
+  {from:"contracts-ui",to:"milestones-api",label:"actions"},{from:"mcc-portfolio",to:"mccs-api",label:"query"},
+  {from:"admin-ui",to:"admin-api",label:"manage"},{from:"contracts-api",to:"escrow",label:"fund"},
+  {from:"contracts-api",to:"crypto",label:"encrypt"},{from:"milestones-api",to:"escrow",label:"release"},
+  {from:"milestones-api",to:"mint",label:"mint MCC"},{from:"milestones-api",to:"messages",label:"log"},
+  {from:"contracts-api",to:"n8n-client",label:"events"},{from:"escrow",to:"xrpl",label:"EscrowCreate/Finish"},
+  {from:"mint",to:"xrpl",label:"NFTokenMint"},{from:"mint",to:"pinata",label:"metadata"},
+  {from:"wallet",to:"xrpl",label:"wallet ops"},{from:"crypto",to:"supabase",label:"encrypted store"},
+  {from:"n8n-client",to:"n8n",label:"webhooks"},{from:"messages",to:"supabase",label:"insert"},
+  {from:"admin-api",to:"supabase",label:"admin_accounts"},{from:"commercial",to:"admin-api",label:"disputes"},
+  {from:"boss",to:"admin-api",label:"all access"},
+];
+
+const LIFECYCLE = [
+  {id:"draft",label:"Draft",color:"#6B7280",x:50,y:40},
+  {id:"proposed",label:"Proposed",color:"#8B5CF6",x:200,y:40},
+  {id:"funded",label:"Funded",color:"#3B82F6",x:350,y:40},
+  {id:"submitted",label:"Submitted",color:"#F59E0B",x:350,y:140},
+  {id:"approved",label:"Approved",color:"#10B981",x:200,y:140},
+  {id:"released",label:"Released",color:"#C9A84C",x:50,y:140},
+  {id:"disputed",label:"Disputed",color:"#F85149",x:500,y:90},
+  {id:"mcc_minted",label:"MCC Minted",color:"#C9A84C",x:50,y:220},
+];
+const LC_TRANS = [
+  {from:"draft",to:"proposed",label:"propose"},{from:"proposed",to:"funded",label:"fund escrow"},
+  {from:"funded",to:"submitted",label:"submit work"},{from:"submitted",to:"approved",label:"approve"},
+  {from:"submitted",to:"funded",label:"request changes"},{from:"approved",to:"released",label:"release escrow"},
+  {from:"released",to:"mcc_minted",label:"auto-mint T1+T4"},
+  {from:"funded",to:"disputed",label:"dispute"},{from:"submitted",to:"disputed",label:"dispute"},
+  {from:"approved",to:"disputed",label:"dispute"},
+];
+
+const DB = [
+  {group:"Core",color:"#3B82F6",tables:[
+    {name:"users",cols:"id, email, display_name, role, xrpl_address, encrypted_seed"},
+    {name:"contracts",cols:"id, creator_id, marketplace_id, title, status, template, currency"},
+    {name:"milestones",cols:"id, contract_id, sequence, status, amount, escrow_tx_hash"},
+    {name:"contract_messages",cols:"id, contract_id, sender_id, type, content, metadata"},
+  ]},
+  {group:"Credentials",color:"#C9A84C",tables:[
+    {name:"nft_registry",cols:"id, contract_id, milestone_id, nft_token_id, taxon, owner, mint_tx_hash"},
+    {name:"dispute_events",cols:"id, contract_id, milestone_id, initiated_by, reason, status"},
+  ]},
+  {group:"Negotiation",color:"#BC8CFF",tables:[
+    {name:"project_briefs",cols:"id, marketplace_id, title, description, budget, deadline"},
+    {name:"proposals",cols:"id, brief_id, counterparty_id, direction, terms, status"},
+    {name:"proposal_rounds",cols:"id, proposal_id, round_number, changes, proposed_by"},
+  ]},
+  {group:"Admin",color:"#F85149",tables:[
+    {name:"admin_accounts",cols:"id, email, admin_role, password_hash, is_active, created_by"},
+    {name:"admin_sessions",cols:"id, admin_id, token_hash, ip_address, expires_at"},
+    {name:"admin_audit_log",cols:"id, admin_id, action, target_type, target_id, details"},
+    {name:"admin_permissions",cols:"id, admin_role, resource, can_read, can_write, can_delete"},
+    {name:"dispute_arbitrators",cols:"id, user_id, status, skill_domains, mcc_count, approved_by"},
+    {name:"dispute_panels",cols:"id, dispute_id, arbitrator_id, vote, vote_reason"},
+  ]},
+];
+
+const FEES = [
+  {label:"Client funds escrow",detail:"Full milestone amount locked on XRPL",icon:"🔒"},
+  {label:"Creator submits work",detail:"Deliverable hash + media uploaded",icon:"📦"},
+  {label:"Client approves",detail:"Milestone status → approved",icon:"✓"},
+  {label:"Release escrow",detail:"EscrowFinish with encrypted fulfillment",icon:"🔓"},
+  {label:"Deduct 0.98% fee",detail:"Decrypt creator seed → Payment to platform",icon:"💰"},
+  {label:"Mint MCCs",detail:"T1 (creator) + T4 (client) auto-minted",icon:"🏅"},
+  {label:"n8n events fire",detail:"mcc.minted + milestone.released webhooks",icon:"⚡"},
+];
+
+// n8n event data
+const N8N_EVENTS = [
+  {cat:"User Events",catColor:"#39D2C0",events:[
+    {id:"user.registered",trigger:"POST /api/auth/callback",payload:"{user_id, email, role}",desc:"New user OAuth signup. Welcome emails + onboarding.",
+     nodes:[{id:"wh",type:"Webhook",color:"#FF6D5A",label:"user.registered",x:40,y:70},{id:"sw",type:"Switch",color:"#E8AA42",label:"Check role",x:190,y:70},{id:"cr",type:"Set",color:"#7F8C8D",label:"Creator tpl",x:340,y:30},{id:"mk",type:"Set",color:"#7F8C8D",label:"Client tpl",x:340,y:110},{id:"em",type:"Email",color:"#2ECC71",label:"Send welcome",x:490,y:70}],
+     edges:[["wh","sw"],["sw","cr","creator"],["sw","mk","client"],["cr","em"],["mk","em"]]},
+  ]},
+  {cat:"Contract Events",catColor:"#58A6FF",events:[
+    {id:"contract.created",trigger:"POST /api/contracts",payload:"{contract_id, creator_id, marketplace_id, title, milestones[]}",desc:"Contract + milestones inserted. Notify counterparty.",
+     nodes:[{id:"wh",type:"Webhook",color:"#FF6D5A",label:"contract.created",x:40,y:70},{id:"fn",type:"Function",color:"#9B59B6",label:"Format summary",x:190,y:70},{id:"sb",type:"Supabase",color:"#3ECF8E",label:"Get counterparty",x:340,y:70},{id:"em",type:"Email",color:"#2ECC71",label:"Notify",x:490,y:40},{id:"sl",type:"Slack",color:"#4A154B",label:"#contracts",x:490,y:110}],
+     edges:[["wh","fn"],["fn","sb"],["sb","em"],["sb","sl"]]},
+    {id:"contract.funded",trigger:"POST /api/milestones/[seq] (fund)",payload:"{contract_id, milestone_id, amount, escrow_tx_hash}",desc:"First milestone funded via EscrowCreate. Contract is live.",
+     nodes:[{id:"wh",type:"Webhook",color:"#FF6D5A",label:"contract.funded",x:40,y:70},{id:"fn",type:"Function",color:"#9B59B6",label:"Format amounts",x:190,y:70},{id:"em1",type:"Email",color:"#2ECC71",label:"Notify creator",x:340,y:30},{id:"em2",type:"Email",color:"#2ECC71",label:"Confirm client",x:340,y:110},{id:"xr",type:"HTTP",color:"#1A73E8",label:"Verify XRPL",x:490,y:70}],
+     edges:[["wh","fn"],["fn","em1"],["fn","em2"],["fn","xr"]]},
+    {id:"contract.completed",trigger:"POST /api/milestones/[seq] (release last)",payload:"{contract_id, total_paid, milestones_count}",desc:"Final milestone released. All escrows settled, all MCCs minted.",
+     nodes:[{id:"wh",type:"Webhook",color:"#FF6D5A",label:"contract.completed",x:40,y:70},{id:"fn",type:"Function",color:"#9B59B6",label:"Build summary",x:190,y:70},{id:"em1",type:"Email",color:"#2ECC71",label:"Creator receipt",x:340,y:20},{id:"em2",type:"Email",color:"#2ECC71",label:"Client receipt",x:340,y:70},{id:"sb",type:"Supabase",color:"#3ECF8E",label:"Update stats",x:340,y:120},{id:"sl",type:"Slack",color:"#4A154B",label:"#completed",x:490,y:70}],
+     edges:[["wh","fn"],["fn","em1"],["fn","em2"],["fn","sb"],["fn","sl"]]},
+  ]},
+  {cat:"Milestone Events",catColor:"#C9A84C",events:[
+    {id:"milestone.funded",trigger:"POST /api/milestones/[seq] (fund)",payload:"{contract_id, milestone_id, sequence, amount}",desc:"Per-milestone escrow created. Fires for M2, M3 on auto-fund.",
+     nodes:[{id:"wh",type:"Webhook",color:"#FF6D5A",label:"milestone.funded",x:40,y:70},{id:"if",type:"If",color:"#E67E22",label:"Auto-fund?",x:190,y:70},{id:"fn",type:"Function",color:"#9B59B6",label:"Format alert",x:340,y:40},{id:"no",type:"NoOp",color:"#95A5A6",label:"Skip",x:340,y:110},{id:"em",type:"Email",color:"#2ECC71",label:"Notify creator",x:490,y:40}],
+     edges:[["wh","if"],["if","fn","yes"],["if","no","no"],["fn","em"]]},
+    {id:"milestone.submitted",trigger:"POST /api/milestones/[seq] (submit)",payload:"{contract_id, milestone_id, deliverable_hash}",desc:"Creator submitted deliverables. Client review clock starts.",
+     nodes:[{id:"wh",type:"Webhook",color:"#FF6D5A",label:"milestone.submitted",x:40,y:70},{id:"sb",type:"Supabase",color:"#3ECF8E",label:"Get client",x:190,y:70},{id:"fn",type:"Function",color:"#9B59B6",label:"Review link",x:340,y:70},{id:"em",type:"Email",color:"#2ECC71",label:"Review request",x:490,y:40},{id:"wt",type:"Wait",color:"#F39C12",label:"48h timeout",x:490,y:110},{id:"em2",type:"Email",color:"#2ECC71",label:"Reminder",x:640,y:110}],
+     edges:[["wh","sb"],["sb","fn"],["fn","em"],["fn","wt"],["wt","em2"]]},
+    {id:"milestone.approved",trigger:"POST /api/milestones/[seq] (approve)",payload:"{contract_id, milestone_id, approved_by}",desc:"Client approved deliverable. Escrow release follows.",
+     nodes:[{id:"wh",type:"Webhook",color:"#FF6D5A",label:"milestone.approved",x:40,y:70},{id:"em",type:"Email",color:"#2ECC71",label:"Notify creator",x:210,y:70}],
+     edges:[["wh","em"]]},
+    {id:"milestone.released",trigger:"releaseMilestoneAndAdvance()",payload:"{contract_id, milestone_id, amount, fee_amount, escrow_finish_hash}",desc:"Escrow finished, 0.98% fee deducted, funds released. Triggers MCC mint + next auto-fund.",
+     nodes:[{id:"wh",type:"Webhook",color:"#FF6D5A",label:"milestone.released",x:20,y:90},{id:"fn",type:"Function",color:"#9B59B6",label:"Parse amounts",x:160,y:90},{id:"xr",type:"HTTP",color:"#1A73E8",label:"Verify escrow",x:300,y:30},{id:"em1",type:"Email",color:"#2ECC71",label:"Creator receipt",x:300,y:90},{id:"em2",type:"Email",color:"#2ECC71",label:"Client receipt",x:300,y:150},{id:"sb",type:"Supabase",color:"#3ECF8E",label:"Log fee",x:450,y:30},{id:"sl",type:"Slack",color:"#4A154B",label:"#releases",x:450,y:90},{id:"sb2",type:"Supabase",color:"#3ECF8E",label:"Update stats",x:450,y:150}],
+     edges:[["wh","fn"],["fn","xr"],["fn","em1"],["fn","em2"],["xr","sb"],["em1","sl"],["em2","sb2"]]},
+    {id:"milestone.disputed",trigger:"POST /api/milestones/[seq] (dispute)",payload:"{contract_id, milestone_id, initiated_by, reason}",desc:"Dispute raised. Milestone frozen. Admin notified.",
+     nodes:[{id:"wh",type:"Webhook",color:"#FF6D5A",label:"milestone.disputed",x:40,y:70},{id:"fn",type:"Function",color:"#9B59B6",label:"Format dispute",x:190,y:70},{id:"sb",type:"Supabase",color:"#3ECF8E",label:"Create event",x:340,y:20},{id:"em",type:"Email",color:"#2ECC71",label:"Both parties",x:340,y:70},{id:"sl",type:"Slack",color:"#4A154B",label:"#disputes",x:340,y:130},{id:"em2",type:"Email",color:"#2ECC71",label:"Alert admin",x:490,y:70}],
+     edges:[["wh","fn"],["fn","sb"],["fn","em"],["fn","sl"],["em","em2"]]},
+  ]},
+  {cat:"Dispute Events",catColor:"#F85149",events:[
+    {id:"dispute.opened",trigger:"POST /api/disputes",payload:"{dispute_id, contract_id, initiator_id, reason}",desc:"Formal dispute. Assigns 3-member arbitration panel.",
+     nodes:[{id:"wh",type:"Webhook",color:"#FF6D5A",label:"dispute.opened",x:40,y:70},{id:"sb",type:"Supabase",color:"#3ECF8E",label:"Find arbitrators",x:190,y:70},{id:"fn",type:"Function",color:"#9B59B6",label:"Select panel",x:340,y:70},{id:"sb2",type:"Supabase",color:"#3ECF8E",label:"Create panels",x:490,y:40},{id:"em",type:"Email",color:"#2ECC71",label:"Notify panel",x:490,y:110}],
+     edges:[["wh","sb"],["sb","fn"],["fn","sb2"],["fn","em"]]},
+    {id:"dispute.escalated",trigger:"Admin action",payload:"{dispute_id, escalated_by, previous_votes}",desc:"Panel deadlocked or appeal. Boss admin rules.",
+     nodes:[{id:"wh",type:"Webhook",color:"#FF6D5A",label:"dispute.escalated",x:40,y:70},{id:"fn",type:"Function",color:"#9B59B6",label:"Build case",x:190,y:70},{id:"em",type:"Email",color:"#2ECC71",label:"Boss + commercial",x:340,y:40},{id:"sl",type:"Slack",color:"#4A154B",label:"#escalated",x:340,y:110}],
+     edges:[["wh","fn"],["fn","em"],["fn","sl"]]},
+    {id:"dispute.resolved",trigger:"Panel vote / admin ruling",payload:"{dispute_id, resolution, winner, refund_amount}",desc:"Dispute resolved. Escrow release or refund executed.",
+     nodes:[{id:"wh",type:"Webhook",color:"#FF6D5A",label:"dispute.resolved",x:20,y:90},{id:"sw",type:"Switch",color:"#E8AA42",label:"Resolution",x:160,y:90},{id:"f1",type:"Function",color:"#9B59B6",label:"Creator wins",x:310,y:30},{id:"f2",type:"Function",color:"#9B59B6",label:"Client wins",x:310,y:90},{id:"f3",type:"Function",color:"#9B59B6",label:"Split",x:310,y:150},{id:"xr",type:"HTTP",color:"#1A73E8",label:"Execute payout",x:460,y:90},{id:"em",type:"Email",color:"#2ECC71",label:"Both parties",x:610,y:60},{id:"sb",type:"Supabase",color:"#3ECF8E",label:"Update records",x:610,y:120}],
+     edges:[["wh","sw"],["sw","f1","creator"],["sw","f2","client"],["sw","f3","split"],["f1","xr"],["f2","xr"],["f3","xr"],["xr","em"],["xr","sb"]]},
+  ]},
+  {cat:"Credential Events",catColor:"#C9A84C",events:[
+    {id:"mcc.minted",trigger:"mintWorkCredentialOnRelease()",payload:"{nft_token_id, taxon, owner_address, mint_tx_hash}",desc:"MCC minted on XRPL. T1 (creator) + T4 (client) fire separately.",
+     nodes:[{id:"wh",type:"Webhook",color:"#FF6D5A",label:"mcc.minted",x:40,y:70},{id:"xr",type:"HTTP",color:"#1A73E8",label:"Verify on-chain",x:190,y:70},{id:"if",type:"If",color:"#E67E22",label:"Verified?",x:340,y:70},{id:"sb",type:"Supabase",color:"#3ECF8E",label:"Confirm registry",x:490,y:30},{id:"em",type:"Email",color:"#2ECC71",label:"Credential earned!",x:490,y:90},{id:"err",type:"Function",color:"#9B59B6",label:"Log mismatch",x:490,y:150}],
+     edges:[["wh","xr"],["xr","if"],["if","sb","yes"],["if","err","no"],["sb","em"]]},
+  ]},
+  {cat:"System Events",catColor:"#F0883E",events:[
+    {id:"escrow.expiring",trigger:"Schedule (every 1h)",payload:"{contract_id, milestone_id, hours_remaining}",desc:"Scheduled job. Queries milestones with escrow expiring within 24h.",
+     nodes:[{id:"sc",type:"Schedule",color:"#F39C12",label:"Every 1 hour",x:40,y:70},{id:"sb",type:"Supabase",color:"#3ECF8E",label:"Query expiring",x:190,y:70},{id:"if",type:"If",color:"#E67E22",label:"Any found?",x:340,y:70},{id:"fn",type:"Function",color:"#9B59B6",label:"Format warnings",x:490,y:40},{id:"em",type:"Email",color:"#2ECC71",label:"Warn parties",x:640,y:20},{id:"sl",type:"Slack",color:"#4A154B",label:"#escrow-alerts",x:640,y:70},{id:"no",type:"NoOp",color:"#95A5A6",label:"Nothing",x:490,y:120}],
+     edges:[["sc","sb"],["sb","if"],["if","fn","yes"],["if","no","no"],["fn","em"],["fn","sl"]]},
+  ]},
+];
+
+// ─── Helpers ──────────────────────────────────────────
+function svgEl(tag, attrs, parent) {
+  const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+  for (const [k,v] of Object.entries(attrs||{})) el.setAttribute(k, v);
+  if (parent) parent.appendChild(el);
+  return el;
+}
+
+// ─── Tab switching ────────────────────────────────────
+document.querySelectorAll('.main-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.main-tab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.panel).classList.add('active');
+  });
+});
+
+// ─── Architecture SVG ─────────────────────────────────
+(function buildArch() {
+  const svg = document.getElementById('arch-svg');
+  const detail = document.getElementById('arch-detail');
+  const nodePos = {};
+  let selected = null;
+
+  // Defs
+  const defs = svgEl('defs', {}, svg);
+  ['arrow','arrow-active'].forEach(id => {
+    const m = svgEl('marker', {id, viewBox:'0 0 10 10', refX:'9', refY:'5', markerWidth:'6', markerHeight:'6', orient:'auto-start-auto'}, defs);
+    svgEl('path', {d:'M 0 0 L 10 5 L 0 10 z', fill: id==='arrow' ? '#8B949E66' : '#C9A84C'}, m);
+  });
+
+  // Layers
+  LAYERS.forEach(layer => {
+    svgEl('rect', {x:10, y:40+layer.y*110, width:730, height:95, rx:12, fill:layer.color+'08', stroke:layer.color+'25', 'stroke-width':1}, svg);
+    const t = svgEl('text', {x:24, y:58+layer.y*110, fill:layer.color, 'font-size':10, 'font-weight':600, opacity:0.7, 'font-family':'system-ui'}, svg);
+    t.textContent = layer.label;
+
+    const count = layer.nodes.length;
+    const spacing = 700 / (count + 1);
+    layer.nodes.forEach((node, i) => {
+      const x = spacing * (i + 1);
+      const y = 70 + layer.y * 110;
+      nodePos[node.id] = { x, y, color: layer.color, layer: layer.id };
+
+      const g = svgEl('g', {style:'cursor:pointer'}, svg);
+      const r = svgEl('rect', {x:x-48, y:y-14, width:96, height:28, rx:6, fill:'#161B22', stroke:'#30363D', 'stroke-width':1, class:'node-rect'}, g);
+      const tx = svgEl('text', {x, y:y+4, 'text-anchor':'middle', fill:'#8B949E', 'font-size':9, 'font-weight':400, 'font-family':'system-ui'}, g);
+      tx.textContent = node.label;
+
+      g.addEventListener('click', () => {
+        if (selected === node.id) { selected = null; detail.classList.remove('show'); updateHighlights(); return; }
+        selected = node.id;
+        updateHighlights();
+        const inb = CONNS.filter(c => c.to === node.id);
+        const outb = CONNS.filter(c => c.from === node.id);
+        detail.innerHTML = `<div class="detail-layer" style="color:${layer.color}">${layer.label}</div>
+          <div class="detail-name">${node.label}</div>
+          <div class="detail-desc">${node.desc}</div>
+          ${inb.length ? `<div class="detail-conn"><b>← In:</b> ${inb.map(c=>c.from).join(', ')}</div>` : ''}
+          ${outb.length ? `<div class="detail-conn"><b>→ Out:</b> ${outb.map(c=>c.to+' ('+c.label+')').join(', ')}</div>` : ''}`;
+        detail.classList.add('show');
+      });
+
+      node._g = g; node._r = r; node._t = tx;
+    });
+  });
+
+  // Connections
+  const connEls = CONNS.map(conn => {
+    const f = nodePos[conn.from], t = nodePos[conn.to];
+    if (!f || !t) return null;
+    const midY = (f.y + t.y) / 2;
+    const g = svgEl('g', {style:'cursor:pointer'}, svg);
+    const p = svgEl('path', {d:`M ${f.x} ${f.y+14} C ${f.x} ${midY}, ${t.x} ${midY}, ${t.x} ${t.y-14}`,
+      fill:'none', stroke:'#8B949E30', 'stroke-width':0.8, 'marker-end':'url(#arrow)', class:'conn-path'}, g);
+    const lb = svgEl('text', {x:(f.x+t.x)/2, y:midY-4, 'text-anchor':'middle', fill:'#C9A84C', 'font-size':8, 'font-family':'system-ui', 'font-weight':500, opacity:0}, g);
+    lb.textContent = conn.label;
+    return { g, p, lb, from: conn.from, to: conn.to };
+  }).filter(Boolean);
+
+  // Move nodes on top
+  LAYERS.forEach(l => l.nodes.forEach(n => svg.appendChild(n._g)));
+
+  function updateHighlights() {
+    LAYERS.forEach(l => l.nodes.forEach(n => {
+      const hl = selected === n.id || (selected && CONNS.some(c => (c.from===selected&&c.to===n.id)||(c.to===selected&&c.from===n.id)));
+      const pos = nodePos[n.id];
+      n._r.setAttribute('fill', hl ? pos.color+'30' : '#161B22');
+      n._r.setAttribute('stroke', hl ? pos.color : '#30363D');
+      n._r.setAttribute('stroke-width', hl ? 1.5 : 1);
+      n._t.setAttribute('fill', hl ? '#E6EDF3' : '#8B949E');
+      n._t.setAttribute('font-weight', hl ? 600 : 400);
+    }));
+    connEls.forEach(c => {
+      const active = selected === c.from || selected === c.to;
+      c.p.setAttribute('stroke', active ? '#C9A84C' : '#8B949E30');
+      c.p.setAttribute('stroke-width', active ? 1.5 : 0.8);
+      c.p.setAttribute('marker-end', active ? 'url(#arrow-active)' : 'url(#arrow)');
+      c.lb.setAttribute('opacity', active ? 1 : 0);
+    });
+  }
+})();
+
+// ─── Lifecycle SVG ────────────────────────────────────
+(function buildLifecycle() {
+  const svg = document.getElementById('lifecycle-svg');
+  let active = null;
+  const defs = svgEl('defs', {}, svg);
+  ['lc-arrow','lc-arrow-active'].forEach(id => {
+    const m = svgEl('marker', {id, viewBox:'0 0 10 10', refX:'9', refY:'5', markerWidth:'5', markerHeight:'5', orient:'auto'}, defs);
+    svgEl('path', {d:'M 0 0 L 10 5 L 0 10 z', fill: id.includes('active') ? '#C9A84C' : '#8B949E40'}, m);
+  });
+
+  const transEls = LC_TRANS.map(t => {
+    const f = LIFECYCLE.find(s=>s.id===t.from), to = LIFECYCLE.find(s=>s.id===t.to);
+    const fx=f.x+50, fy=f.y+20, tx=to.x+50, ty=to.y+20;
+    const off = t.label==='request changes' ? -20 : 0;
+    const line = svgEl('line', {x1:fx,y1:fy+off,x2:tx,y2:ty+off, stroke:'#8B949E40', 'stroke-width':1,
+      'stroke-dasharray': t.label==='dispute'?'4 3':'none', 'marker-end':'url(#lc-arrow)'}, svg);
+    const lb = svgEl('text', {x:(fx+tx)/2, y:(fy+ty)/2+off-6, 'text-anchor':'middle', fill:'#C9A84C', 'font-size':9, 'font-family':'system-ui', 'font-weight':500, opacity:0}, svg);
+    lb.textContent = t.label;
+    return { line, lb, from: t.from, to: t.to, label: t.label };
+  });
+
+  const stateEls = LIFECYCLE.map(s => {
+    const g = svgEl('g', {style:'cursor:pointer'}, svg);
+    const r = svgEl('rect', {x:s.x, y:s.y, width:100, height:38, rx:8, fill:'#161B22', stroke:'#30363D', 'stroke-width':1}, g);
+    const t = svgEl('text', {x:s.x+50, y:s.y+23, 'text-anchor':'middle', fill:'#8B949E', 'font-size':11, 'font-weight':500, 'font-family':'system-ui'}, g);
+    t.textContent = s.label;
+    g.addEventListener('click', () => {
+      active = active===s.id ? null : s.id;
+      update();
+    });
+    return { g, r, t, state: s };
+  });
+
+  function update() {
+    stateEls.forEach(({r,t,state}) => {
+      const hl = active===state.id || (active && LC_TRANS.some(tr=>(tr.from===active&&tr.to===state.id)||(tr.to===active&&tr.from===state.id)));
+      r.setAttribute('fill', hl ? state.color+'30' : '#161B22');
+      r.setAttribute('stroke', hl ? state.color : '#30363D');
+      r.setAttribute('stroke-width', hl ? 2 : 1);
+      t.setAttribute('fill', hl ? '#fff' : '#8B949E');
+      t.setAttribute('font-weight', hl ? 700 : 500);
+    });
+    transEls.forEach(tr => {
+      const act = active===tr.from || active===tr.to;
+      tr.line.setAttribute('stroke', act ? (tr.label==='dispute'?'#F85149':'#C9A84C') : '#8B949E40');
+      tr.line.setAttribute('stroke-width', act ? 2 : 1);
+      tr.line.setAttribute('marker-end', act ? 'url(#lc-arrow-active)' : 'url(#lc-arrow)');
+      tr.lb.setAttribute('opacity', act ? 1 : 0);
+      if (act && tr.label==='dispute') tr.lb.setAttribute('fill','#F85149');
+      else tr.lb.setAttribute('fill','#C9A84C');
+    });
+  }
+})();
+
+// ─── Database Grid ────────────────────────────────────
+(function buildDB() {
+  const grid = document.getElementById('db-grid');
+  DB.forEach(group => {
+    const div = document.createElement('div');
+    div.className = 'db-group';
+    div.style.border = `1px solid ${group.color}33`;
+    div.innerHTML = `<div class="db-group-label" style="color:${group.color}">${group.group.toUpperCase()}</div>`;
+    group.tables.forEach(table => {
+      const td = document.createElement('div');
+      td.className = 'db-table';
+      td.innerHTML = `<div class="db-table-name">${table.name}</div><div class="db-table-cols">${table.cols}</div>`;
+      td.addEventListener('click', () => td.classList.toggle('expanded'));
+      div.appendChild(td);
+    });
+    grid.appendChild(div);
+  });
+})();
+
+// ─── Fee Flow ─────────────────────────────────────────
+(function buildFee() {
+  const container = document.getElementById('fee-flow');
+  FEES.forEach((step, i) => {
+    const div = document.createElement('div');
+    div.className = 'fee-step';
+    const pct = ((i+1)/FEES.length*100);
+    div.innerHTML = `<div class="fee-bar" style="width:${pct}%"></div>
+      <div class="fee-icon" style="background:${i===document.querySelector('.fee-step.active') ? 'rgba(201,168,76,0.3)' : 'rgba(48,54,61,0.5)'};position:relative">${step.icon}</div>
+      <div style="position:relative;flex:1"><div class="fee-label">${step.label}</div><div class="fee-detail">${step.detail}</div></div>
+      <div class="fee-num" style="position:relative">${i+1}/${FEES.length}</div>`;
+    div.addEventListener('click', () => {
+      const wasActive = div.classList.contains('active');
+      container.querySelectorAll('.fee-step').forEach(s => s.classList.remove('active'));
+      if (!wasActive) div.classList.add('active');
+    });
+    container.appendChild(div);
+  });
+})();
+
+// ─── n8n Workflows ────────────────────────────────────
+(function buildN8N() {
+  const sidebar = document.getElementById('n8n-sidebar');
+  const main = document.getElementById('n8n-main');
+
+  // Lifecycle bar
+  const lcSteps = [
+    {id:"contract.created",short:"created",color:"#58A6FF"},{id:"contract.funded",short:"funded",color:"#58A6FF"},
+    {id:"milestone.funded",short:"m.funded",color:"#C9A84C"},{id:"milestone.submitted",short:"submitted",color:"#C9A84C"},
+    {id:"milestone.approved",short:"approved",color:"#C9A84C"},{id:"milestone.released",short:"released",color:"#C9A84C"},
+    {id:"mcc.minted",short:"mcc",color:"#C9A84C"},{id:"contract.completed",short:"completed",color:"#3FB950"},
+  ];
+  const lcBar = document.createElement('div');
+  lcBar.style.cssText = 'padding:8px 12px;margin-bottom:8px';
+  lcBar.innerHTML = `<div style="font-size:9px;color:var(--muted);font-weight:600;letter-spacing:0.08em;margin-bottom:6px">CONTRACT LIFECYCLE</div>
+    <div class="lifecycle-bar">${lcSteps.map((s,i) =>
+      `<span class="lifecycle-step" style="color:${s.color}" data-event="${s.id}">${s.short}</span>${i<lcSteps.length-1?'<span class="lifecycle-arrow">→</span>':''}`
+    ).join('')}</div>`;
+  sidebar.appendChild(lcBar);
+
+  const sep = document.createElement('div');
+  sep.style.cssText = 'height:1px;background:var(--border);margin:0 12px 8px';
+  sidebar.appendChild(sep);
+
+  // Category list
+  N8N_EVENTS.forEach(cat => {
+    const label = document.createElement('div');
+    label.className = 'n8n-cat-label';
+    label.style.color = cat.catColor;
+    label.textContent = cat.cat.toUpperCase();
+    sidebar.appendChild(label);
+
+    cat.events.forEach(evt => {
+      const div = document.createElement('div');
+      div.className = 'n8n-event';
+      div.dataset.event = evt.id;
+      div.innerHTML = `<div class="n8n-event-name">${evt.id}</div>`;
+      div.addEventListener('click', () => selectEvent(evt.id));
+      sidebar.appendChild(div);
+    });
+  });
+
+  // Lifecycle clicks
+  sidebar.querySelectorAll('.lifecycle-step').forEach(el => {
+    el.addEventListener('click', () => selectEvent(el.dataset.event));
+  });
+
+  function selectEvent(eventId) {
+    // Find event data
+    let evtData = null, catData = null;
+    for (const cat of N8N_EVENTS) {
+      const found = cat.events.find(e => e.id === eventId);
+      if (found) { evtData = found; catData = cat; break; }
+    }
+    if (!evtData) return;
+
+    // Update sidebar highlights
+    sidebar.querySelectorAll('.n8n-event').forEach(el => el.classList.toggle('active', el.dataset.event===eventId));
+    sidebar.querySelectorAll('.lifecycle-step').forEach(el => el.classList.toggle('active', el.dataset.event===eventId));
+
+    // Build workflow
+    const maxX = Math.max(...evtData.nodes.map(n=>n.x)) + 160;
+    const maxY = Math.max(...evtData.nodes.map(n=>n.y)) + 70;
+
+    const legendTypes = [
+      {type:"Webhook",color:"#FF6D5A"},{type:"Switch/If",color:"#E8AA42"},{type:"Function",color:"#9B59B6"},
+      {type:"Supabase",color:"#3ECF8E"},{type:"Email",color:"#2ECC71"},{type:"Slack",color:"#4A154B"},
+      {type:"XRPL HTTP",color:"#1A73E8"},{type:"Wait",color:"#F39C12"},
+    ];
+
+    main.innerHTML = `
+      <div style="margin-bottom:16px">
+        <span style="font-size:9px;font-weight:700;letter-spacing:0.05em;padding:2px 8px;border-radius:4px;background:${catData.catColor}20;color:${catData.catColor}">${catData.cat.toUpperCase()}</span>
+        <h2 style="font-size:20px;font-weight:700;margin:6px 0 0;font-family:monospace">${evtData.id}</h2>
+        <div style="font-size:12px;color:var(--muted);margin-top:6px;line-height:1.6">${evtData.desc}</div>
+      </div>
+      <div class="n8n-meta">
+        <div class="n8n-meta-box"><div class="n8n-meta-label">TRIGGER</div><div class="n8n-meta-val" style="color:var(--blue)">${evtData.trigger}</div></div>
+        <div class="n8n-meta-box"><div class="n8n-meta-label">PAYLOAD</div><div class="n8n-meta-val" style="color:var(--green)">${evtData.payload}</div></div>
+      </div>
+      <div class="n8n-workflow-box">
+        <div class="n8n-workflow-header">
+          <div class="n8n-dot"></div>
+          <span style="font-size:12px;font-weight:600">${evtData.id} workflow</span>
+          <span style="font-size:10px;color:var(--muted);margin-left:auto">${evtData.nodes.length} nodes</span>
+        </div>
+        <svg id="n8n-wf-svg" width="100%" viewBox="0 0 ${maxX} ${maxY}" style="overflow:visible"></svg>
+      </div>
+      <div class="n8n-legend">${legendTypes.map(l => `<div class="n8n-legend-item"><div class="n8n-legend-dot" style="background:${l.color}40;border:1px solid ${l.color}"></div>${l.type}</div>`).join('')}</div>
+    `;
+
+    // Draw SVG workflow
+    const wfSvg = document.getElementById('n8n-wf-svg');
+    const wfDefs = svgEl('defs', {}, wfSvg);
+    const m = svgEl('marker', {id:'n8n-arr', viewBox:'0 0 10 10', refX:'9', refY:'5', markerWidth:'5', markerHeight:'5', orient:'auto'}, wfDefs);
+    svgEl('path', {d:'M 0 0 L 10 5 L 0 10 z', fill:'#8B949E55'}, m);
+
+    // Grid dots
+    for (let xi=0; xi<Math.ceil(maxX/30); xi++)
+      for (let yi=0; yi<Math.ceil(maxY/30); yi++)
+        svgEl('circle', {cx:xi*30+15, cy:yi*30+15, r:0.5, fill:'#30363D'}, wfSvg);
+
+    const W=110, H=36;
+    // Edges
+    evtData.edges.forEach(([fromId, toId, label]) => {
+      const fn = evtData.nodes.find(n=>n.id===fromId);
+      const tn = evtData.nodes.find(n=>n.id===toId);
+      if (!fn||!tn) return;
+      const x1=fn.x+W, y1=fn.y+H/2, x2=tn.x, y2=tn.y+H/2;
+      const mx = (x1+x2)/2;
+      svgEl('path', {d:`M ${x1} ${y1} C ${mx} ${y1}, ${mx} ${y2}, ${x2} ${y2}`,
+        fill:'none', stroke:'#8B949E55', 'stroke-width':1.2, 'marker-end':'url(#n8n-arr)'}, wfSvg);
+      if (label) {
+        const lt = svgEl('text', {x:mx, y:Math.min(y1,y2)-4, 'text-anchor':'middle', fill:'#8B949E', 'font-size':7, 'font-family':'system-ui', 'font-style':'italic'}, wfSvg);
+        lt.textContent = label;
+      }
+    });
+
+    // Nodes
+    evtData.nodes.forEach(node => {
+      const g = svgEl('g', {style:'cursor:pointer'}, wfSvg);
+      svgEl('rect', {x:node.x, y:node.y, width:W, height:H, rx:6, fill:'#161B22', stroke:node.color, 'stroke-width':1.2}, g);
+      svgEl('rect', {x:node.x, y:node.y, width:W, height:14, rx:6, fill:node.color+'30'}, g);
+      svgEl('rect', {x:node.x, y:node.y+8, width:W, height:6, fill:node.color+'30'}, g);
+      const typeTxt = svgEl('text', {x:node.x+W/2, y:node.y+10, 'text-anchor':'middle', fill:node.color,
+        'font-size':7, 'font-weight':700, 'font-family':'system-ui'}, g);
+      typeTxt.textContent = node.type.toUpperCase();
+      const labelTxt = svgEl('text', {x:node.x+W/2, y:node.y+26, 'text-anchor':'middle', fill:'#E6EDF3',
+        'font-size':9, 'font-weight':500, 'font-family':'system-ui'}, g);
+      labelTxt.textContent = node.label;
+    });
+  }
+
+  // Default selection
+  selectEvent('milestone.released');
+})();
+</script>
+</body>
+</html>

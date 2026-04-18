@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StudioLedger — Bill, Protect, and Prove Your Work</title>
+<meta name="description" content="StudioLedger is a creator wallet with escrow-protected invoicing, smart contracts, and Work Credential NFTs. Built on XRP Ledger. 0.5% fees. Instant payouts.">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --brand: #6366f1;
+    --brand-light: #818cf8;
+    --brand-glow: rgba(99, 102, 241, 0.25);
+    --purple: #a855f7;
+    --purple-glow: rgba(168, 85, 247, 0.2);
+    --cyan: #06b6d4;
+    --green: #10b981;
+    --amber: #f59e0b;
+    --rose: #f43f5e;
+
+    --bg: #07080f;
+    --bg-surface: rgba(15, 18, 35, 0.7);
+    --bg-card: rgba(20, 24, 50, 0.5);
+    --border: rgba(255, 255, 255, 0.06);
+    --border-glow: rgba(99, 102, 241, 0.15);
+
+    --text: #e2e8f0;
+    --text-muted: #64748b;
+    --text-dim: #475569;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ============================================
+     AMBIENT BACKGROUND
+     ============================================ */
+  .ambient {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    z-index: 0; pointer-events: none; overflow: hidden;
+  }
+  .ambient-orb {
+    position: absolute; border-radius: 50%;
+    filter: blur(120px); opacity: 0.4;
+    animation: float 20s ease-in-out infinite;
+  }
+  .ambient-orb:nth-child(1) {
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.15), transparent 70%);
+    top: -10%; left: -5%;
+    animation-duration: 25s;
+  }
+  .ambient-orb:nth-child(2) {
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(168, 85, 247, 0.1), transparent 70%);
+    top: 30%; right: -10%;
+    animation-duration: 30s; animation-delay: -5s;
+  }
+  .ambient-orb:nth-child(3) {
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(6, 182, 212, 0.08), transparent 70%);
+    bottom: 10%; left: 20%;
+    animation-duration: 22s; animation-delay: -10s;
+  }
+  @keyframes float {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(30px, -20px) scale(1.05); }
+    66% { transform: translate(-20px, 15px) scale(0.95); }
+  }
+
+  /* ============================================
+     NOISE TEXTURE OVERLAY
+     ============================================ */
+  body::after {
+    content: '';
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    z-index: 1; pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    opacity: 0.4;
+  }
+
+  /* ============================================
+     LAYOUT UTILITIES
+     ============================================ */
+  .container { max-width: 1140px; margin: 0 auto; padding: 0 2rem; }
+  .relative { position: relative; z-index: 2; }
+
+  /* Scroll reveal */
+  .reveal {
+    opacity: 0; transform: translateY(30px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+  .reveal.visible {
+    opacity: 1; transform: translateY(0);
+  }
+
+  /* ============================================
+     NAVIGATION
+     ============================================ */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+    padding: 0.9rem 0;
+    background: rgba(7, 8, 15, 0.6);
+    backdrop-filter: blur(24px) saturate(1.4);
+    border-bottom: 1px solid var(--border);
+    transition: all 0.3s;
+  }
+  nav.scrolled {
+    background: rgba(7, 8, 15, 0.85);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+  }
+  .nav-inner {
+    display: flex; align-items: center; justify-content: space-between;
+    max-width: 1140px; margin: 0 auto; padding: 0 2rem;
+  }
+  .nav-brand {
+    font-size: 1.25rem; font-weight: 800; color: white;
+    text-decoration: none; letter-spacing: -0.03em;
+    display: flex; align-items: center; gap: 0.4rem;
+  }
+  .nav-brand .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--brand);
+    box-shadow: 0 0 10px var(--brand-glow);
+  }
+  .nav-links { display: flex; gap: 2rem; align-items: center; }
+  .nav-links a {
+    color: var(--text-muted); text-decoration: none;
+    font-size: 0.88rem; font-weight: 500;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: white; }
+  .btn-nav {
+    background: var(--brand); color: white !important;
+    padding: 0.5rem 1.2rem; border-radius: 8px;
+    font-weight: 600; font-size: 0.85rem;
+    transition: all 0.2s;
+    box-shadow: 0 2px 15px var(--brand-glow);
+  }
+  .btn-nav:hover { background: var(--brand-light); transform: translateY(-1px); }
+
+  /* ============================================
+     HERO
+     ============================================ */
+  .hero {
+    position: relative; z-index: 2;
+    min-height: 100vh;
+    display: grid; grid-template-columns: 1fr 1fr;
+    align-items: center; gap: 3rem;
+    padding: 7rem 0 4rem;
+  }
+  .hero-text { }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.4rem 1rem; border-radius: 100px;
+    background: rgba(99, 102, 241, 0.06);
+    border: 1px solid rgba(99, 102, 241, 0.15);
+    color: var(--brand-light); font-size: 0.8rem; font-weight: 600;
+    margin-bottom: 1.5rem;
+    letter-spacing: 0.02em;
+  }
+  .hero-badge .pulse-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+  .hero h1 {
+    font-size: clamp(2.5rem, 4.5vw, 3.8rem);
+    font-weight: 800; color: white;
+    line-height: 1.1; margin-bottom: 1.5rem;
+    letter-spacing: -0.03em;
+  }
+  .hero h1 .gradient {
+    background: linear-gradient(135deg, var(--brand-light), var(--purple));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .hero-sub {
+    display: flex; gap: 1.5rem; margin-bottom: 1.5rem;
+    color: var(--text-muted); font-size: 0.85rem; font-weight: 500;
+  }
+  .hero-sub span {
+    display: flex; align-items: center; gap: 0.4rem;
+  }
+  .hero-sub .tag {
+    width: 6px; height: 6px; border-radius: 2px;
+  }
+  .hero-sub .tag-brand { background: var(--brand); }
+  .hero-sub .tag-purple { background: var(--purple); }
+  .hero-sub .tag-cyan { background: var(--cyan); }
+
+  .hero p {
+    font-size: 1.1rem; color: var(--text-muted);
+    max-width: 480px; margin-bottom: 2rem; line-height: 1.7;
+  }
+  .hero-buttons { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+
+  .btn-primary {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: linear-gradient(135deg, var(--brand), var(--purple));
+    color: white; padding: 0.85rem 1.8rem; border-radius: 12px;
+    font-weight: 600; font-size: 0.95rem; text-decoration: none;
+    border: none; cursor: pointer; transition: all 0.3s;
+    box-shadow: 0 4px 25px var(--brand-glow);
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 35px var(--brand-glow);
+  }
+  .btn-secondary {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: rgba(255,255,255,0.03);
+    color: var(--text); padding: 0.85rem 1.8rem; border-radius: 12px;
+    font-weight: 500; font-size: 0.95rem; text-decoration: none;
+    border: 1px solid var(--border); cursor: pointer;
+    transition: all 0.3s;
+  }
+  .btn-secondary:hover {
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(255,255,255,0.12);
+  }
+
+  /* Hero 3D Embed (Spline) */
+  .hero-3d {
+    position: relative;
+    width: 100%; height: 500px;
+    border-radius: 20px; overflow: hidden;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+  }
+  .hero-3d iframe {
+    width: 100%; height: 100%; border: none;
+  }
+  .hero-3d-placeholder {
+    width: 100%; height: 100%;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    color: var(--text-dim); font-size: 0.9rem;
+    background:
+      radial-gradient(ellipse at 30% 40%, rgba(99, 102, 241, 0.08), transparent 50%),
+      radial-gradient(ellipse at 70% 60%, rgba(168, 85, 247, 0.06), transparent 50%);
+  }
+  .hero-3d-placeholder .icon-3d {
+    font-size: 3rem; margin-bottom: 1rem; opacity: 0.4;
+  }
+
+  /* ============================================
+     STATS BAR
+     ============================================ */
+  .stats {
+    position: relative; z-index: 2;
+    padding: 3rem 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    background: rgba(15, 18, 35, 0.4);
+    backdrop-filter: blur(10px);
+  }
+  .stats-inner {
+    display: flex; justify-content: center; gap: 4rem; flex-wrap: wrap;
+  }
+  .stat { text-align: center; }
+  .stat-value {
+    font-size: 2rem; font-weight: 800;
+    background: linear-gradient(135deg, var(--brand-light), var(--purple));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1.2;
+  }
+  .stat-label {
+    font-size: 0.8rem; color: var(--text-dim);
+    font-weight: 500; margin-top: 0.2rem;
+    text-transform: uppercase; letter-spacing: 0.06em;
+  }
+
+  /* ============================================
+     FEATURES
+     ============================================ */
+  .features {
+    position: relative; z-index: 2;
+    padding: 6rem 0;
+  }
+  .features-header {
+    text-align: center; margin-bottom: 4rem;
+  }
+  .section-tag {
+    display: inline-block;
+    padding: 0.3rem 0.8rem; border-radius: 6px;
+    background: rgba(99, 102, 241, 0.08);
+    border: 1px solid rgba(99, 102, 241, 0.15);
+    color: var(--brand-light); font-size: 0.75rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    margin-bottom: 1rem;
+  }
+  .features-header h2 {
+    font-size: clamp(2rem, 3.5vw, 2.5rem);
+    font-weight: 800; color: white;
+    letter-spacing: -0.02em; margin-bottom: 0.75rem;
+  }
+  .features-header p {
+    color: var(--text-muted); font-size: 1.05rem; max-width: 520px; margin: 0 auto;
+  }
+
+  .features-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem;
+  }
+
+  .feature-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px; padding: 2rem;
+    transition: all 0.4s ease;
+    position: relative; overflow: hidden;
+    backdrop-filter: blur(10px);
+  }
+  .feature-card::before {
+    content: ''; position: absolute;
+    top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border-glow), transparent);
+    opacity: 0; transition: opacity 0.4s;
+  }
+  .feature-card:hover {
+    border-color: var(--border-glow);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(99, 102, 241, 0.08);
+  }
+  .feature-card:hover::before { opacity: 1; }
+
+  .feature-icon {
+    width: 44px; height: 44px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 1.2rem; font-size: 1.3rem;
+  }
+  .fi-brand { background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.15); }
+  .fi-green { background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.15); }
+  .fi-purple { background: rgba(168, 85, 247, 0.08); border: 1px solid rgba(168, 85, 247, 0.15); }
+  .fi-cyan { background: rgba(6, 182, 212, 0.08); border: 1px solid rgba(6, 182, 212, 0.15); }
+  .fi-amber { background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.15); }
+  .fi-rose { background: rgba(244, 63, 94, 0.08); border: 1px solid rgba(244, 63, 94, 0.15); }
+
+  .feature-card h3 {
+    font-size: 1.05rem; font-weight: 700; color: white;
+    margin-bottom: 0.5rem;
+  }
+  .feature-card p {
+    color: var(--text-muted); font-size: 0.9rem; line-height: 1.6;
+  }
+
+  /* ============================================
+     HOW IT WORKS
+     ============================================ */
+  .how-section {
+    position: relative; z-index: 2;
+    padding: 5rem 0 6rem;
+    border-top: 1px solid var(--border);
+    background: rgba(15, 18, 35, 0.3);
+  }
+  .how-header { text-align: center; margin-bottom: 4rem; }
+  .how-header h2 {
+    font-size: clamp(2rem, 3.5vw, 2.5rem);
+    font-weight: 800; color: white;
+    letter-spacing: -0.02em;
+  }
+
+  .how-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem;
+    position: relative;
+  }
+  /* Connection line */
+  .how-grid::before {
+    content: ''; position: absolute;
+    top: 32px; left: 12.5%; right: 12.5%; height: 2px;
+    background: linear-gradient(90deg, var(--brand), var(--purple), var(--cyan), var(--green));
+    opacity: 0.2;
+  }
+  .how-step { text-align: center; position: relative; }
+  .how-number {
+    width: 64px; height: 64px; border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem; font-weight: 800; color: white;
+    margin: 0 auto 1.2rem;
+    position: relative; z-index: 2;
+  }
+  .how-step:nth-child(1) .how-number {
+    background: linear-gradient(135deg, var(--brand), #4f46e5);
+    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.2);
+  }
+  .how-step:nth-child(2) .how-number {
+    background: linear-gradient(135deg, var(--purple), #7c3aed);
+    box-shadow: 0 4px 20px rgba(168, 85, 247, 0.2);
+  }
+  .how-step:nth-child(3) .how-number {
+    background: linear-gradient(135deg, var(--cyan), #0891b2);
+    box-shadow: 0 4px 20px rgba(6, 182, 212, 0.2);
+  }
+  .how-step:nth-child(4) .how-number {
+    background: linear-gradient(135deg, var(--green), #059669);
+    box-shadow: 0 4px 20px rgba(16, 185, 129, 0.2);
+  }
+  .how-step h3 {
+    font-size: 1rem; font-weight: 700; color: white;
+    margin-bottom: 0.4rem;
+  }
+  .how-step p { color: var(--text-muted); font-size: 0.85rem; line-height: 1.5; }
+
+  /* ============================================
+     SOVEREIGNTY SECTION
+     ============================================ */
+  .sovereignty {
+    position: relative; z-index: 2;
+    padding: 5rem 0;
+    border-top: 1px solid var(--border);
+  }
+  .sov-inner {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center;
+  }
+  .sov-text {}
+  .sov-text h2 {
+    font-size: 2.2rem; font-weight: 800; color: white;
+    margin-bottom: 1rem; letter-spacing: -0.02em; line-height: 1.15;
+  }
+  .sov-text p {
+    color: var(--text-muted); font-size: 1rem; margin-bottom: 1.5rem; line-height: 1.7;
+  }
+  .sov-list { list-style: none; display: flex; flex-direction: column; gap: 0.75rem; }
+  .sov-list li {
+    display: flex; align-items: center; gap: 0.75rem;
+    color: var(--text); font-size: 0.95rem; font-weight: 500;
+  }
+  .sov-check {
+    width: 24px; height: 24px; border-radius: 6px;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--green); font-size: 0.8rem; flex-shrink: 0;
+  }
+  .sov-visual {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 20px; padding: 2.5rem;
+    position: relative; overflow: hidden;
+  }
+  .sov-visual::before {
+    content: ''; position: absolute;
+    top: -50%; right: -50%; width: 200%; height: 200%;
+    background: radial-gradient(ellipse at 70% 30%, rgba(99, 102, 241, 0.05), transparent 50%);
+    pointer-events: none;
+  }
+  .sov-badge-row {
+    display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1.5rem;
+  }
+  .sov-badge {
+    padding: 0.35rem 0.9rem; border-radius: 8px;
+    font-size: 0.8rem; font-weight: 600;
+    background: rgba(99, 102, 241, 0.08);
+    border: 1px solid rgba(99, 102, 241, 0.15);
+    color: var(--brand-light);
+  }
+  .sov-badge.iso {
+    background: rgba(245, 158, 11, 0.08);
+    border-color: rgba(245, 158, 11, 0.15);
+    color: var(--amber);
+  }
+  .sov-badge.xrpl {
+    background: rgba(16, 185, 129, 0.08);
+    border-color: rgba(16, 185, 129, 0.15);
+    color: var(--green);
+  }
+  .sov-currencies {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem;
+  }
+  .sov-currency {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 10px; padding: 0.75rem;
+    text-align: center; transition: all 0.2s;
+  }
+  .sov-currency:hover { border-color: var(--border-glow); background: rgba(99, 102, 241, 0.04); }
+  .sov-currency .symbol { font-size: 1.1rem; font-weight: 700; color: white; }
+  .sov-currency .name { font-size: 0.7rem; color: var(--text-dim); margin-top: 0.15rem; }
+
+  /* ============================================
+     CTA
+     ============================================ */
+  .cta {
+    position: relative; z-index: 2;
+    padding: 6rem 0;
+    border-top: 1px solid var(--border);
+  }
+  .cta-card {
+    max-width: 700px; margin: 0 auto;
+    text-align: center;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.06), rgba(168, 85, 247, 0.04));
+    border: 1px solid rgba(99, 102, 241, 0.12);
+    border-radius: 24px; padding: 4rem 3rem;
+    position: relative; overflow: hidden;
+  }
+  .cta-card::before {
+    content: ''; position: absolute;
+    top: -100px; left: 50%; transform: translateX(-50%);
+    width: 300px; height: 300px; border-radius: 50%;
+    background: radial-gradient(circle, var(--brand-glow), transparent 70%);
+    pointer-events: none;
+  }
+  .cta h2 {
+    font-size: 2.2rem; font-weight: 800; color: white;
+    margin-bottom: 0.75rem; letter-spacing: -0.02em;
+    position: relative;
+  }
+  .cta p {
+    color: var(--text-muted); font-size: 1.05rem;
+    margin-bottom: 2rem; position: relative;
+  }
+  .cta .btn-primary { position: relative; }
+
+  /* ============================================
+     FOOTER
+     ============================================ */
+  footer {
+    position: relative; z-index: 2;
+    padding: 2.5rem 0;
+    border-top: 1px solid var(--border);
+  }
+  .footer-inner {
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .footer-brand {
+    font-size: 0.9rem; font-weight: 600; color: var(--text-dim);
+  }
+  .footer-brand span { color: var(--text-muted); }
+  .footer-links { display: flex; gap: 1.5rem; }
+  .footer-links a {
+    color: var(--text-dim); text-decoration: none; font-size: 0.8rem;
+    transition: color 0.2s;
+  }
+  .footer-links a:hover { color: var(--text-muted); }
+
+  /* ============================================
+     RESPONSIVE
+     ============================================ */
+  @media (max-width: 900px) {
+    .hero { grid-template-columns: 1fr; padding-top: 6rem; }
+    .hero-3d { height: 350px; }
+    .features-grid { grid-template-columns: 1fr 1fr; }
+    .how-grid { grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    .how-grid::before { display: none; }
+    .sov-inner { grid-template-columns: 1fr; }
+    .stats-inner { gap: 2rem; }
+  }
+  @media (max-width: 600px) {
+    .features-grid { grid-template-columns: 1fr; }
+    .how-grid { grid-template-columns: 1fr; }
+    .nav-links a:not(.btn-nav) { display: none; }
+    .sov-currencies { grid-template-columns: repeat(2, 1fr); }
+    .footer-inner { flex-direction: column; gap: 1rem; }
+    .hero h1 { font-size: 2.2rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Ambient Background -->
+<div class="ambient">
+  <div class="ambient-orb"></div>
+  <div class="ambient-orb"></div>
+  <div class="ambient-orb"></div>
+</div>
+
+<!-- Navigation -->
+<nav id="nav">
+  <div class="nav-inner">
+    <a href="#" class="nav-brand">
+      <span class="dot"></span>
+      StudioLedger
+    </a>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#how">How It Works</a>
+      <a href="#sovereignty">Why XRPL</a>
+      <a href="#cta" class="btn-nav">Get Started</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero container relative">
+  <div class="hero-text reveal">
+    <div class="hero-badge">
+      <span class="pulse-dot"></span>
+      Powered by XRP Ledger
+    </div>
+    <h1>
+      Bill, protect,<br>and prove<br>
+      <span class="gradient">your work.</span>
+    </h1>
+    <div class="hero-sub">
+      <span><span class="tag tag-brand"></span> Trustless</span>
+      <span><span class="tag tag-purple"></span> Permissionless</span>
+      <span><span class="tag tag-cyan"></span> Yours</span>
+    </div>
+    <p>
+      The creator wallet with escrow-protected invoicing, smart contract templates, and Work Credential NFTs. Your money, your reputation, your sovereignty.
+    </p>
+    <div class="hero-buttons">
+      <a href="#cta" class="btn-primary">
+        Get Started Free
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+      </a>
+      <a href="#how" class="btn-secondary">How It Works</a>
+    </div>
+  </div>
+
+  <!-- Spline 3D Embed Zone -->
+  <div class="hero-3d reveal">
+    <!--
+      SPLINE EMBED: Replace the placeholder below with your Spline scene URL.
+      Example: <iframe src="https://my.spline.design/YOUR_SCENE_ID/" />
+    -->
+    <div class="hero-3d-placeholder">
+      <div class="icon-3d">&#11042;</div>
+      <p>Spline 3D scene goes here</p>
+      <p style="font-size:0.75rem; margin-top:0.5rem; opacity:0.5;">
+        Design your scene at spline.design &rarr; Share &rarr; Embed
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- Stats -->
+<section class="stats relative reveal">
+  <div class="stats-inner container">
+    <div class="stat">
+      <div class="stat-value">0.5%</div>
+      <div class="stat-label">Platform fee</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">~3s</div>
+      <div class="stat-label">Settlement</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">8+</div>
+      <div class="stat-label">Currencies</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">ISO 20022</div>
+      <div class="stat-label">Compliant</div>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section class="features" id="features">
+  <div class="container">
+    <div class="features-header reveal">
+      <div class="section-tag">Features</div>
+      <h2>Creator billing, reimagined.</h2>
+      <p>Trustless invoicing. Permissionless contracts. On-chain credentials. The blockchain IS the settlement layer.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card reveal">
+        <div class="feature-icon fi-brand">&#128274;</div>
+        <h3>Escrow Protection</h3>
+        <p>Funds locked on-chain via XRPL crypto-conditions. Automatic release on milestone approval. No middleman controls your money.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon fi-purple">&#128220;</div>
+        <h3>Smart Contracts</h3>
+        <p>6 template types: fixed price, milestone, retainer, license, subscription, pay-per-use. Define terms, fund escrow, done.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon fi-cyan">&#127968;</div>
+        <h3>Work Credential NFTs</h3>
+        <p>Every completed job mints a portable credential token. Your proof-of-work portfolio travels with you. Verifiable. Permanent. Yours.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon fi-green">&#128179;</div>
+        <h3>Multi-Currency Wallet</h3>
+        <p>XRP, RLUSD, USD, EUR, GBP, JPY, USDC, USDT. Send, receive, convert. One wallet, one dashboard, global reach.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon fi-amber">&#9889;</div>
+        <h3>Instant Payouts</h3>
+        <p>No 14-day holds. No bank processing. Escrow releases settle in ~3 seconds on XRPL. Your money when you earn it.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon fi-rose">&#128737;</div>
+        <h3>Financial Sovereignty</h3>
+        <p>Your keys, your money, your reputation. No platform lock-in. No permission needed. True Web3 financial independence.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- How It Works -->
+<section class="how-section" id="how">
+  <div class="container">
+    <div class="how-header reveal">
+      <div class="section-tag">Process</div>
+      <h2>Four steps to financial sovereignty.</h2>
+    </div>
+    <div class="how-grid">
+      <div class="how-step reveal">
+        <div class="how-number">1</div>
+        <h3>Connect Wallet</h3>
+        <p>Sign in with Xaman or create a new XRPL wallet. Set up trust lines in one tap.</p>
+      </div>
+      <div class="how-step reveal">
+        <div class="how-number">2</div>
+        <h3>Create Contract</h3>
+        <p>Pick a template, define milestones, set your price. Client reviews and funds escrow.</p>
+      </div>
+      <div class="how-step reveal">
+        <div class="how-number">3</div>
+        <h3>Deliver & Get Paid</h3>
+        <p>Submit work. Client approves. Escrow releases to your wallet in seconds.</p>
+      </div>
+      <div class="how-step reveal">
+        <div class="how-number">4</div>
+        <h3>Build Credentials</h3>
+        <p>A Work Credential NFT is minted. Your on-chain portfolio grows with every job.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Financial Sovereignty -->
+<section class="sovereignty" id="sovereignty">
+  <div class="container">
+    <div class="sov-inner">
+      <div class="sov-text reveal">
+        <div class="section-tag">Why XRPL</div>
+        <h2>Built on the XRP Ledger.<br>Built for sovereignty.</h2>
+        <p>
+          StudioLedger doesn't use a bank. It doesn't need one. The blockchain IS the settlement layer.
+          Built natively on XRPL — the fastest, cheapest, most energy-efficient
+          public blockchain for payments. ISO 20022 compliant. Institutional grade.
+          Your creative business deserves infrastructure that banks trust.
+        </p>
+        <ul class="sov-list">
+          <li><span class="sov-check">&#10003;</span> Trustless escrow via crypto-conditions</li>
+          <li><span class="sov-check">&#10003;</span> ~3 second global settlement</li>
+          <li><span class="sov-check">&#10003;</span> Negligible transaction fees (~$0.0002)</li>
+          <li><span class="sov-check">&#10003;</span> ISO 20022 payment standard compliance</li>
+          <li><span class="sov-check">&#10003;</span> No mining, no staking — pure efficiency</li>
+          <li><span class="sov-check">&#10003;</span> Chain-agnostic at the door — connect MetaMask, Xaman, or any Web3 wallet</li>
+        </ul>
+      </div>
+      <div class="sov-visual reveal">
+        <div class="sov-badge-row">
+          <span class="sov-badge xrpl">XRP Ledger</span>
+          <span class="sov-badge iso">ISO 20022</span>
+          <span class="sov-badge">Web3 Native</span>
+        </div>
+        <div class="sov-currencies">
+          <div class="sov-currency"><div class="symbol">XRP</div><div class="name">Native</div></div>
+          <div class="sov-currency"><div class="symbol">RLUSD</div><div class="name">Stablecoin</div></div>
+          <div class="sov-currency"><div class="symbol">USD</div><div class="name">US Dollar</div></div>
+          <div class="sov-currency"><div class="symbol">EUR</div><div class="name">Euro</div></div>
+          <div class="sov-currency"><div class="symbol">GBP</div><div class="name">Pound</div></div>
+          <div class="sov-currency"><div class="symbol">JPY</div><div class="name">Yen</div></div>
+          <div class="sov-currency"><div class="symbol">USDC</div><div class="name">Circle</div></div>
+          <div class="sov-currency"><div class="symbol">USDT</div><div class="name">Tether</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta" id="cta">
+  <div class="container">
+    <div class="cta-card reveal">
+      <h2>Own your creative career.</h2>
+      <p>Join the beta. First 100 creators get premium for life.</p>
+      <a href="#" class="btn-primary">
+        Join the Beta
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        StudioLedger <span>by ACI</span> &mdash; Powered by XRP Ledger
+      </div>
+      <div class="footer-links">
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+        <a href="#">Contact</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- Scripts -->
+<script>
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => {
+          entry.target.classList.add('visible');
+        }, i * 80);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+  reveals.forEach(el => observer.observe(el));
+
+  // Nav scroll effect
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 50);
+  });
+
+  // Smooth anchor scrolling
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      const target = document.querySelector(a.getAttribute('href'));
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+</script>
+</body>
+</html>
