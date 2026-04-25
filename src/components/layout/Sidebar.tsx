@@ -73,24 +73,17 @@ export default function Sidebar({ user }: SidebarProps) {
       )}
       style={{ backgroundColor: 'var(--bg-surface)' }}
     >
-      {/* Logo */}
-      <div className={cn('py-6 flex items-center', collapsed ? 'px-3 justify-center' : 'px-5')}>
-        <Link href="/dashboard" className="group">
-          {collapsed ? (
-            <span
-              className="font-bold text-2xl tracking-tight"
-              style={{ color: 'var(--text)' }}
-            >
-              SL
-            </span>
-          ) : (
-            <span
-              className="font-bold text-2xl tracking-tight"
-              style={{ color: 'var(--text)' }}
-            >
-              StudioLedger.ai
-            </span>
-          )}
+      {/* Logo — height matches TopBar (60px) so it aligns with breadcrumb row */}
+      <div className={cn('h-[60px] flex items-center', collapsed ? 'px-3 justify-center' : 'px-5')}>
+        <Link href="/dashboard" className="group flex items-center">
+          <img
+            src="/images/logorangeSL2.png"
+            alt="StudioLedger"
+            className={cn(
+              'object-contain transition-all duration-200',
+              collapsed ? 'h-[46px] w-[46px]' : 'h-[46px] w-auto'
+            )}
+          />
         </Link>
       </div>
 

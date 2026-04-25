@@ -146,6 +146,10 @@ export async function POST(request: NextRequest) {
       const milestoneSeq = milestone.sequence || 1;
       const now = new Date().toISOString();
 
+      // Use placeholder address for test users without XRPL wallets (until testnet)
+      const creatorAddress = creatorUser?.xrpl_address || 'rTEST_CREATOR_NO_WALLET';
+      const clientAddress = clientUser?.xrpl_address || 'rTEST_CLIENT_NO_WALLET';
+
       // Shared metadata for both MCCs
       const sharedMeta = {
         work_title: contract.title || 'Untitled',
@@ -161,10 +165,6 @@ export async function POST(request: NextRequest) {
         creator_address: creatorAddress,
         delivery_date: now.slice(0, 10),
       };
-
-      // Use placeholder address for test users without XRPL wallets (until testnet)
-      const creatorAddress = creatorUser?.xrpl_address || 'rTEST_CREATOR_NO_WALLET';
-      const clientAddress = clientUser?.xrpl_address || 'rTEST_CLIENT_NO_WALLET';
 
       // Creator Work Credential (Taxon 1)
       {

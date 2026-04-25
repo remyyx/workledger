@@ -32,6 +32,9 @@ const config: Config = {
       animation: {
         'fade-in': 'fadeIn 0.35s ease-out forwards',
         'slide-in': 'slideIn 0.35s ease-out forwards',
+        // Federal MCC sandbox: currency-paper microprint band — loops token/tx hash
+        // slowly across the bottom strip. 32s = legible-ish without feeling static.
+        'microprint': 'microprintScroll 32s linear infinite',
       },
       keyframes: {
         fadeIn: {
@@ -41,6 +44,12 @@ const config: Config = {
         slideIn: {
           '0%': { opacity: '0', transform: 'translateY(8px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        microprintScroll: {
+          // Content is duplicated (unit.repeat(N)) so -50% lands on the second
+          // identical half — seamless infinite loop with no visible reset.
+          '0%':   { transform: 'translateX(0)' },
+          '100%': { transform: 'translateX(-50%)' },
         },
       },
     },

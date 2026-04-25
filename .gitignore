@@ -85,6 +85,19 @@ Screenshot *.png
 # Experiment / preview files
 mcc-preview.html
 
+# Internal project briefs & prototypes
+StudioLedger_Project_Brief.md
+StudioLedger_Project_Brief_Public.md
+docs/BETA-USER-PRIVACY-QUESTIONNAIRE.md
+docs/MCC/MCC-Federal-Elements-Preview.html
+docs/MCC/MCC-Sphere-Placement-*.html
+docs/MCC/MCC-Sphere-Placement-Test.html
+docs/hyperframes-*.html
+README_github.md
+
+# Landing page experiments (all versions except production)
+landing-v4-*.html
+
 # Claude worktrees & memory
 .claude/worktrees/
 .claude/

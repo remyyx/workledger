@@ -450,13 +450,13 @@ export const demoMCCs: MCCRecord[] = [
       creator_address: 'rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh',
       marketplace_rating: 5,
       marketplace_comment: 'Exceptional creative vision. Delivered on time with zero revisions needed.',
-      delivery_doc: `StudioLedger.ai — Work Delivery & License Summary
+      delivery_doc: `Work Delivery & License Summary
 
 1. Project
    Project name: Oreo Brand Creative Direction
    Client / Brand: Mondelez International
    Creator: Alice Martin (Art Director / Brand Strategist)
-   Contract ID (StudioLedger): CON-2025-00005
+   Contract ID: CON-2025-00005
    Milestone: M1 — Brand Creative Direction Delivery
 
 2. Work Delivered
@@ -544,13 +544,13 @@ export const demoMCCs: MCCRecord[] = [
       marketplace_rating: 5,
       marketplace_comment: 'Exceptional creative vision. Delivered on time with zero revisions needed.',
       // ── Full Delivery & License Summary (captured at submission) ──
-      delivery_doc: `StudioLedger.ai — Work Delivery & License Summary
+      delivery_doc: `Work Delivery & License Summary
 
 1. Project
    Project name: Oreo Brand Creative Direction
    Client / Brand: Mondelez International
    Creator: Alice Martin (Art Director / Brand Strategist)
-   Contract ID (StudioLedger): CON-2025-00005
+   Contract ID: CON-2025-00005
    Milestone: M1 — Brand Creative Direction Delivery
 
 2. Work Delivered
@@ -608,6 +608,86 @@ export const demoMCCs: MCCRecord[] = [
     },
     mint_tx_hash: 'TX005MNO...',
     minted_at: '2025-03-10T11:30:00Z',
+  },
+  // ─────────────────────────────────────────────────────────────────
+  // SANDBOX COPY — Federal design test fixture.
+  // Duplicate of mcc-005 (Alice Martin's Oreo Work Credential, Taxon 1).
+  // Use this entry to iterate on the federal MCC design without touching
+  // the reference record above. Safe to mutate: id + token_id are unique,
+  // everything else intentionally mirrors mcc-005 so side-by-side rendering
+  // shows the design delta, not data delta.
+  // ─────────────────────────────────────────────────────────────────
+  {
+    id: 'mcc-005-federal',
+    mcc_token_id: '000800006203F49C21D5D6E022CB16DE3538F248662FC73C0000F001',
+    taxon: 1,
+    issuer: 'rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh',
+    owner: 'rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh',
+    contract_id: 'c-005',
+    milestone_id: 'm-006',
+    metadata_uri: 'ipfs://Qm...federal-sandbox',
+    metadata_cache: {
+      name: 'Oreo Project — Brand Creative Direction (Federal Design Sandbox)',
+      description: 'Sandbox copy of the Oreo Brand Creative Direction credential, used to prototype the federal MCC design system. Data mirrors mcc-005 so design deltas are visible without data noise.',
+      image: 'gradient:orange-red',
+      work_title: 'Oreo Brand Creative Direction',
+      work_category: 'Brand & Creative',
+      client_name: 'Mondelez International',
+      creator_name: 'Alice Martin',
+      deliverable_media_url: 'https://img.freepik.com/premium-photo/ethereal-cipher-gorgeous-geisha-ghost-shell-code-generative-ai_978425-847.jpg?w=996',
+      deliverable_hash: 'sha256_oreo2025',
+      delivery_date: '2025-03-10',
+      payment_amount: '5616.72',
+      payment_currency: 'RLUSD',
+      escrow_tx_hash: 'F6A1B2C3D4E5...',
+      escrow_sequence: 12350,
+      milestone_sequence: 1,
+      contract_hash: 'hash_c005',
+      marketplace_rating: 5,
+      marketplace_comment: 'Exceptional creative vision. Delivered on time with zero revisions needed.',
+      delivery_doc: `Work Delivery & License Summary
+
+1. Project
+   Project name: Oreo Brand Creative Direction
+   Client / Brand: Mondelez International
+   Creator: Alice Martin (Art Director / Brand Strategist)
+   Contract ID: CON-2025-00005
+   Milestone: M1 — Brand Creative Direction Delivery
+
+2. Work Delivered
+   2.1 Title & description
+       Work title: Oreo Brand Creative Direction
+       Type of work: Brand identity refresh, art direction, campaign creative
+       Short description: Full creative direction package for the Oreo global brand project. Includes brand book refresh, art direction guidelines, colour system update, typography selection, and 3 campaign concepts with hero visuals.
+
+3. Delivery hash
+   SHA-256: sha256_oreo2025
+   Computed at: 2025-03-08T14:00:00Z
+
+4. Escrow & Payment
+   Payment amount: 5,616.72 RLUSD
+   Escrow TX: F6A1B2C3D4E5...
+   Escrow sequence: 12350
+   Released: 2025-03-10T11:30:00Z
+
+5. License Terms
+   Rights granted: Use in global brand communications, packaging, digital, and print advertising
+   Territory: Worldwide
+   Duration: Perpetual
+   Exclusivity: Exclusive to Mondelez International
+   Modifications: Allowed with creator credit
+   Sublicensing: Not permitted
+   Royalties: None (full buyout)
+   Revocation: Non-revocable after payment release`,
+      deliverable_files: [
+        { name: 'Oreo_BrandBook_v3_Final.pdf', format: 'PDF, 48 pages', role: 'Primary brand book', notes: 'Logo usage, colour system, typography, imagery guidelines.' },
+        { name: 'Oreo_Campaign_Concepts_x3.pdf', format: 'PDF, 24 pages', role: '3 hero campaign concepts', notes: 'Mood boards, hero visuals, taglines, channel breakdowns.' },
+        { name: 'Oreo_HeroVisual_Campaign1_HR.png', format: 'PNG, 4800×3200, 300 DPI', role: 'Hero visual — Campaign 1', notes: 'Final approved artwork, CMYK + RGB.' },
+        { name: 'Oreo_ColourSystem_Tokens.json', format: 'JSON design tokens', role: 'Colour system for dev', notes: 'CSS variables, Figma tokens, Tailwind config.' },
+      ],
+    },
+    mint_tx_hash: 'TX005MNO-FED...',
+    minted_at: '2025-03-10T11:31:00Z',
   },
 ];
 

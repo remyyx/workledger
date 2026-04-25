@@ -26,6 +26,7 @@ import type { XamanSignStatus } from '@/hooks/use-xaman-sign';
 import type { Milestone } from '@/types';
 import { FundEscrowModal } from '@/components/ui/FundEscrowModal';
 import { ReleaseConfirmModal } from '@/components/ui/ReleaseConfirmModal';
+import InfoCard from '@/components/ui/InfoCard';
 
 /** Inline preview for media URL when possible; otherwise link. */
 function DeliverablePreview({ url }: { url: string }) {
@@ -813,6 +814,15 @@ export default function ContractDetailPage({ params }: { params: { id: string } 
                   </span>
                 </div>
               </div>
+
+              {/* Info-card: escrow funding explanation */}
+              <InfoCard
+                variant="shield"
+                message="Funding locks your payment on XRPL using a crypto-condition escrow. Funds are only released when you approve the creator's deliverable."
+                className="mt-3"
+                dismissible
+                hidden={contract.status !== 'draft' && contract.status !== 'funded'}
+              />
             </div>
 
             {/* ═══ BLOCK 3: ACTIONS — all buttons always present, only applicable ones active ═══ */}
@@ -1028,8 +1038,15 @@ export default function ContractDetailPage({ params }: { params: { id: string } 
                         </p>
                       </div>
                     ) : (
-                      <div className="rounded-lg flex items-center justify-center h-32 border border-dashed" style={{ borderColor: 'var(--border)', color: 'var(--text-muted)' }}>
-                        <p className="text-sm">No deliverable submitted yet</p>
+                      <div className="space-y-3">
+                        <div className="rounded-lg flex items-center justify-center h-32 border border-dashed" style={{ borderColor: 'var(--border)', color: 'var(--text-muted)' }}>
+                          <p className="text-sm">No deliverable submitted yet</p>
+                        </div>
+                        <InfoCard
+                          variant="info"
+                          message="Attach your deliverable files when submitting. The SHA-256 hash is recorded as tamper-proof evidence of what was delivered."
+                          hidden={contract.status === 'completed' || contract.status === 'draft'}
+                        />
                       </div>
                     )}
 
@@ -1103,6 +1120,13 @@ export default function ContractDetailPage({ params }: { params: { id: string } 
               </div>
 
               {/* License terms — inline editor, always visible */}
+              <InfoCard
+                variant="document"
+                message="Define usage rights before releasing funds. Once the MCC is minted, license terms are recorded on-chain and cannot be changed."
+                className="mt-4"
+                dismissible
+                hidden={contract.status === 'completed' || !!contract.license_terms?.rights}
+              />
               <div className="mt-4 pt-4 border-t border-border">
                 <LicenseTermsEditor
                   contractId={contract.id}
@@ -1384,6 +1408,16 @@ export default function ContractDetailPage({ params }: { params: { id: string } 
                 Fee and Net totals reflect released milestones only · {PLATFORM.FEE_PERCENT}%
               </p>
             </div>
+
+            {/* Info-card: contract terms upload reminder */}
+            <InfoCard
+              variant="upload"
+              message="Upload your contract terms before you finalise the escrow transaction. Without attached terms, the escrow is binding but unscoped."
+              detail="Accepted formats: PDF, DOCX, TXT. Terms are hashed and linked to the on-chain escrow."
+              dismissible
+              hidden={contract.status === 'completed' || !!contract.license_terms?.source_doc}
+              cta={{ label: 'Fill or upload the metadata', direction: 'left' }}
+            />
 
           </div>
         </div>

@@ -17,6 +17,11 @@ import { useState } from 'react';
 import { Copy, Check, ExternalLink } from 'lucide-react';
 import type { MCCRecord } from '@/types';
 import { formatDate } from '@/lib/utils';
+import MCCSphere from './MCCSphere';
+
+// Sandbox fixture id — only this MCC gets the federal-design experiments.
+// See src/lib/demo-data.ts for the mcc-005-federal record.
+const FEDERAL_SANDBOX_ID = 'mcc-005-federal';
 
 // ─── Per-taxon theme ──────────────────────────────────────────────────────────
 type TaxonTheme = {
@@ -105,7 +110,7 @@ function buildAttributes(mcc: MCCRecord) {
   if (mcc.mint_tx_hash)     attrs.push({ trait_type: 'Mint TX',          value: truncateHash(mcc.mint_tx_hash), copyable: true });
   attrs.push({ trait_type: 'Token ID', value: truncateHash(mcc.mcc_token_id, 10, 6), copyable: true });
   attrs.push({ trait_type: 'Owner',    value: truncateHash(mcc.owner, 8, 6), copyable: true });
-  attrs.push({ trait_type: 'Platform', value: 'StudioLedger.ai' });
+  attrs.push({ trait_type: 'Platform', value: 'studioledger.ai' });
   attrs.push({ trait_type: 'Network',  value: 'XRPL Mainnet' });
 
   return attrs;
@@ -196,16 +201,25 @@ export default function MCCCard({ mcc }: MCCCardProps) {
     ? `https://xrpscan.com/nft/${mcc.mcc_token_id}`
     : null;
 
+  // Federal-design sandbox flag — only the Oreo mcc-005-federal card gets the sphere
+  // and future federal-design experiments. Keeps production MCCs unchanged.
+  const isFederalSandbox = mcc.id === FEDERAL_SANDBOX_ID;
+
   return (
-    <div className="rounded-2xl overflow-hidden border-2 flex flex-col"
+    <div className="rounded-2xl overflow-hidden border-2 flex flex-col relative"
       style={{ backgroundColor: theme.cardBg, borderColor: theme.cardBorder }}>
 
       {/* ── Header band ── */}
       <div className="flex items-center justify-between px-4 py-2.5 border-b"
         style={{ backgroundColor: theme.headerBg, borderColor: theme.cardBorder }}>
-        <span className="text-xs font-semibold tracking-wide" style={{ color: theme.text }}>
-          StudioLedger.ai · MCC
-        </span>
+        <div className="flex flex-col leading-tight">
+          <span className="text-xs font-semibold tracking-wide" style={{ color: theme.text }}>
+            studioledger.ai · MCC
+          </span>
+          <span className="text-[9px] font-medium uppercase tracking-[0.18em]" style={{ color: theme.textMuted }}>
+            Minted Craft Credential
+          </span>
+        </div>
         <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded"
           style={{ color: theme.accentColor, backgroundColor: theme.badgeBg, border: `1px solid ${theme.badgeBorder}` }}>
           {theme.label}
@@ -377,29 +391,141 @@ export default function MCCCard({ mcc }: MCCCardProps) {
             </span>
             <div className="h-px flex-1" style={{ backgroundColor: theme.cardBorder }} />
           </div>
-          <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-            {attrs.map(a => (
-              <div key={a.trait_type} className="min-w-0">
-                <p className="text-[9px] uppercase tracking-wider font-bold mb-0.5" style={{ color: theme.textMuted }}>
-                  {a.trait_type}
-                </p>
-                <div className="flex items-center min-w-0">
-                  <p className="text-[11px] font-mono truncate" style={{ color: theme.text }}>
-                    {String(a.value)}
+          {/* Federal sandbox: guilloche philigram (watermark) behind the full
+             attribute grid. Crosshatch weave variant — TWO chevron families
+             overlaid with a quarter-period phase offset. Each family is the
+             chevron construction (triangle-wave stripes, amplitudes stepping
+             -maxAmp..+maxAmp, all converging at their own zero crossings).
+             Family B's zero crossings land on Family A's peaks (and vice
+             versa), so where one family converges into a node the other
+             fans wide open. The overlap reads as a diamond lattice instead
+             of linear chevrons — classic certificate crosshatch weave.
+             Per-family stripe count is halved so the combined density
+             stays legible; stroke and opacity are trimmed a touch because
+             double-hatching compounds visual weight. */}
+          <div className="relative">
+            {isFederalSandbox && (() => {
+              const W = 320, H = 180, cy = H / 2;
+              const freq = 3.0;       // slightly looser than the pure chevron —
+                                      // crossing pattern adds its own density
+              const perFamily = 14;   // ~half the chevron count per family;
+                                      // doubled families keep total ~equal
+              const maxAmp = 78;      // unchanged — fans still fill vertical
+              const samples = 260;    // enough vertices for crisp peaks
+              // Triangle wave, unit-amplitude: (2/π)·arcsin(sin θ).
+              const tri = (theta: number) => (2 / Math.PI) * Math.asin(Math.sin(theta));
+              // Two families at phase offsets 0 and π/2 (quarter period) so
+              // A's peaks align with B's zero crossings → diamond crosshatch.
+              const families = [0, Math.PI / 2];
+              const paths: string[] = [];
+              for (const phaseShift of families) {
+                for (let i = 0; i < perFamily; i++) {
+                  const amp = ((i + 0.5) / perFamily - 0.5) * 2 * maxAmp;
+                  let d = '';
+                  for (let s = 0; s <= samples; s++) {
+                    const x = (s / samples) * W;
+                    const phase = (2 * Math.PI * freq * s) / samples + phaseShift;
+                    const y = cy + amp * tri(phase);
+                    d += (s === 0 ? 'M' : 'L') + x.toFixed(2) + ' ' + y.toFixed(2) + ' ';
+                  }
+                  paths.push(d);
+                }
+              }
+              return (
+                <svg
+                  className="absolute inset-0 pointer-events-none"
+                  width="100%"
+                  height="100%"
+                  viewBox={`0 0 ${W} ${H}`}
+                  preserveAspectRatio="none"
+                  aria-hidden
+                  style={{ zIndex: 0 }}
+                >
+                  {paths.map((d, i) => (
+                    <path
+                      key={i}
+                      d={d}
+                      stroke={theme.accentColor}
+                      strokeWidth="0.3"
+                      fill="none"
+                      opacity="0.22"
+                    />
+                  ))}
+                </svg>
+              );
+            })()}
+
+            <div className="relative grid grid-cols-2 gap-x-4 gap-y-2" style={{ zIndex: 1 }}>
+              {attrs.map(a => (
+                <div key={a.trait_type} className="min-w-0">
+                  <p className="text-[9px] uppercase tracking-wider font-bold mb-0.5" style={{ color: theme.textMuted }}>
+                    {a.trait_type}
                   </p>
-                  {a.copyable && <CopyButton text={String(a.value)} color={theme.accentColor} />}
+                  <div className="flex items-center min-w-0">
+                    <p className="text-[11px] font-mono truncate" style={{ color: theme.text }}>
+                      {String(a.value)}
+                    </p>
+                    {a.copyable && <CopyButton text={String(a.value)} color={theme.accentColor} />}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
 
-          {xrplScanUrl && (
-            <a href={xrplScanUrl} target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 mt-4 text-[10px] font-semibold hover:opacity-75 transition-opacity"
-              style={{ color: theme.accentColor }}>
-              <ExternalLink size={11} />
-              View on xrpscan.com
-            </a>
+          {(xrplScanUrl || isFederalSandbox) && (
+            <div className="mt-4 flex items-center gap-3">
+              {/* Federal sandbox: sphere sits on the FAR LEFT, no frame, just a
+                 soft radial halo bleeding outward. Continent dots reveal a tiny
+                 rotating world as the credential's live-on-chain mark. */}
+              {isFederalSandbox && (
+                <>
+                  {/* Variant 5 pulse — keyframes injected inline to bypass
+                     Tailwind's build step (matches the marquee's approach).
+                     3.4s ease-in-out infinite: 0.95 → 1.15 scale, 0.7 → 1.0 alpha. */}
+                  <style dangerouslySetInnerHTML={{ __html: `
+                    @keyframes mccHaloPulse {
+                      0%, 100% { transform: scale(0.95); opacity: 0.7; }
+                      50%      { transform: scale(1.15); opacity: 1;   }
+                    }
+                  ` }} />
+                  <div
+                    className="relative flex items-center justify-center shrink-0"
+                    style={{ width: 47, height: 47 }}
+                    title="Live on XRPL · continents trace real-time rotation"
+                  >
+                    {/* Halo — radial gradient fading from accent to transparent,
+                       bleeds 6px past the sphere edge so the pulse reads without
+                       cropping. Blurred slightly so the edge never shows as a ring. */}
+                    <div
+                      className="absolute pointer-events-none rounded-full"
+                      style={{
+                        inset: '-6px',
+                        background: `radial-gradient(circle, ${theme.accentColor}55 0%, ${theme.accentColor}22 40%, ${theme.accentColor}00 70%)`,
+                        filter: 'blur(2px)',
+                        animation: 'mccHaloPulse 3.4s ease-in-out infinite',
+                        transformOrigin: 'center',
+                        willChange: 'transform, opacity',
+                      }}
+                    />
+                    <MCCSphere
+                      size={47}
+                      color={theme.accentColor}
+                      pattern="continents"
+                      className="relative"
+                    />
+                  </div>
+                </>
+              )}
+
+              {xrplScanUrl && (
+                <a href={xrplScanUrl} target="_blank" rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-[10px] font-semibold hover:opacity-75 transition-opacity"
+                  style={{ color: theme.accentColor }}>
+                  <ExternalLink size={11} />
+                  View on xrpscan.com
+                </a>
+              )}
+            </div>
           )}
         </div>
       </div>
@@ -426,6 +552,70 @@ export default function MCCCard({ mcc }: MCCCardProps) {
           XRPL · {truncateHash(mcc.owner, 8, 6)} · {theme.labelShort}
         </p>
       </div>
+
+      {/* ── Kinetic readout (federal sandbox only) ──
+         Currency-paper detail promoted to a legible ticker: real MCC data
+         (token id, tx hashes, sequence) scrolling across the very bottom strip.
+         Sits AFTER the barcode footer so it reads as the literal last line of
+         the card. Content is repeated 4× so the CSS `translateX(-50%)` loop
+         lands on an identical slice — seamless infinite motion with no reset.
+
+         Animation is inlined (keyframes + style) instead of going through
+         Tailwind config, so it runs regardless of build state and without
+         requiring a dev-server restart. */}
+      {isFederalSandbox && (() => {
+        const unit =
+          [
+            mcc.mcc_token_id,
+            mcc.mint_tx_hash ? `MINT:${mcc.mint_tx_hash}` : null,
+            meta.deliverable_hash ? `SHA256:${meta.deliverable_hash}` : null,
+            meta.escrow_tx_hash ? `ESCROW:${meta.escrow_tx_hash}` : null,
+            meta.escrow_sequence ? `SEQ:${meta.escrow_sequence}` : null,
+            'XRPL · MAINNET · STUDIOLEDGER',
+          ]
+            .filter(Boolean)
+            .join('  ·  ') + '  ·  ';
+        const tickerText = unit.repeat(4);
+        return (
+          <>
+            <style
+              dangerouslySetInnerHTML={{
+                __html: `
+                  @keyframes mccTickerScroll {
+                    0%   { transform: translateX(0); }
+                    100% { transform: translateX(-50%); }
+                  }
+                `,
+              }}
+            />
+            <div
+              className="relative overflow-hidden border-t"
+              style={{
+                borderColor: theme.cardBorder,
+                backgroundColor: 'rgba(0,0,0,0.6)',
+                padding: '6px 0',
+              }}
+              aria-hidden
+              title="Live ticker · on-chain identifiers"
+            >
+              <div
+                className="whitespace-nowrap inline-block font-mono"
+                style={{
+                  fontSize: '10px',
+                  lineHeight: 1.2,
+                  letterSpacing: '0.05em',
+                  color: theme.accentColor,
+                  opacity: 0.85,
+                  animation: 'mccTickerScroll 40s linear infinite',
+                  willChange: 'transform',
+                }}
+              >
+                {tickerText}
+              </div>
+            </div>
+          </>
+        );
+      })()}
     </div>
   );
 }
