@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StudioLedger — Settlement Protocol for Creative Work</title>
+<meta name="description" content="Escrow-protected contracts, portable credentials, and multi-currency settlement on XRPL. 0.98% fees. No bank, no float, no chasing.">
+<meta property="og:title" content="StudioLedger — Settlement Protocol for Creative Work">
+<meta property="og:description" content="Escrow-protected contracts. Portable credentials. 0.98% fees. Built natively on XRPL.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://studioledger.ai">
+<meta property="og:image" content="https://studioledger.ai/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="StudioLedger — Settlement Protocol for Creative Work">
+<meta name="twitter:description" content="Escrow-protected contracts. Portable credentials. 0.98% fees. Built natively on XRPL.">
+<link rel="canonical" href="https://studioledger.ai">
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<!-- GSAP + ScrollTrigger -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+<!-- Lenis Smooth Scroll -->
+<script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.29/bundled/lenis.min.js"></script>
+<!-- Three.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r152/three.min.js"></script>
+<!-- JSON-LD -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "StudioLedger",
+  "legalName": "StudioLedger Pty Ltd",
+  "url": "https://studioledger.ai",
+  "founder": { "@type": "Person", "name": "Remy Ruozzi" },
+  "description": "A settlement protocol for creative work — escrow, credentials, and multi-currency settlement on XRPL.",
+  "taxID": "ACN 696 549 809"
+}
+</script>
+<style>
+/* ============================================
+   StudioLedger Landing v8 — Show HN Edition
+   ============================================ */
+:root {
+  --bg: #09090b;
+  --bg-surface: #111114;
+  --bg-card: #16161a;
+  --text: #f4f4f5;
+  --text-muted: #a1a1aa;
+  --text-dim: #71717a;
+  --orange: #f97316;
+  --orange-glow: rgba(249, 115, 22, 0.25);
+  --purple: #a855f7;
+  --purple-glow: rgba(168, 85, 247, 0.2);
+  --green: #22c55e;
+  --red: #ef4444;
+  --cyan: #06b6d4;
+  --border: rgba(255, 255, 255, 0.07);
+  --border-hover: rgba(255, 255, 255, 0.14);
+  --radius: 12px;
+  --radius-lg: 16px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html.lenis { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6 { font-family: 'Outfit', sans-serif; line-height: 1.2; }
+
+a { color: var(--orange); text-decoration: none; transition: opacity 0.2s; }
+a:hover { opacity: 0.8; }
+
+.container { max-width: 1120px; margin: 0 auto; padding: 0 1.5rem; }
+
+/* ---- Canvas & Effects ---- */
+#three-canvas {
+  position: fixed; top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  z-index: 0; pointer-events: none;
+}
+
+.noise {
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 1;
+  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  opacity: 0.7;
+}
+
+.orb {
+  position: fixed; border-radius: 50%;
+  filter: blur(100px); z-index: 0;
+  pointer-events: none;
+}
+.orb-1 { top: -15%; left: -5%; width: 45vw; height: 45vw; background: radial-gradient(circle, rgba(249,115,22,0.1), transparent 70%); }
+.orb-2 { bottom: -20%; right: -8%; width: 55vw; height: 55vw; background: radial-gradient(circle, rgba(168,85,247,0.08), transparent 70%); }
+
+/* ---- Navigation ---- */
+nav {
+  position: fixed; top: 0; width: 100%; z-index: 100;
+  padding: 1rem 2rem;
+  display: flex; justify-content: space-between; align-items: center;
+  background: rgba(9, 9, 11, 0.8);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  transition: background 0.3s;
+}
+
+.nav-logo {
+  display: flex; align-items: center; gap: 0.6rem;
+  font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1.15rem;
+  color: var(--text); text-decoration: none;
+}
+.nav-logo svg { flex-shrink: 0; }
+
+.nav-links { display: flex; align-items: center; gap: 2rem; list-style: none; }
+.nav-links a { color: var(--text-muted); font-size: 0.875rem; font-weight: 500; text-decoration: none; transition: color 0.2s; }
+.nav-links a:hover { color: var(--text); opacity: 1; }
+
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.55rem 1.25rem;
+  background: var(--orange); color: #fff;
+  font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 0.875rem;
+  border: none; border-radius: 8px; cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.2s;
+  text-decoration: none;
+}
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 20px var(--orange-glow); opacity: 1; }
+
+.btn-secondary {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.55rem 1.25rem;
+  background: transparent; color: var(--text-muted);
+  font-family: 'Outfit', sans-serif; font-weight: 500; font-size: 0.875rem;
+  border: 1px solid var(--border); border-radius: 8px; cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+  text-decoration: none;
+}
+.btn-secondary:hover { border-color: var(--border-hover); color: var(--text); opacity: 1; }
+
+.nav-mobile-toggle { display: none; background: none; border: none; color: var(--text); cursor: pointer; }
+
+/* ---- Sections ---- */
+section { position: relative; z-index: 2; }
+
+.section-label {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--orange); margin-bottom: 1rem;
+}
+
+.section-title {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 700; color: var(--text);
+  margin-bottom: 1rem;
+}
+
+.section-sub {
+  font-size: 1.05rem; color: var(--text-muted);
+  max-width: 600px; line-height: 1.7;
+}
+
+/* ---- Hero ---- */
+.hero {
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  text-align: center;
+  padding: 8rem 1.5rem 4rem;
+}
+
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  padding: 0.4rem 1rem;
+  background: rgba(249, 115, 22, 0.08);
+  border: 1px solid rgba(249, 115, 22, 0.2);
+  border-radius: 100px;
+  font-size: 0.8rem; font-weight: 500; color: var(--orange);
+  margin-bottom: 2rem;
+}
+.hero-badge svg { width: 14px; height: 14px; }
+
+.hero h1 {
+  font-size: clamp(2.2rem, 5.5vw, 3.8rem);
+  font-weight: 800; line-height: 1.1;
+  margin-bottom: 1.5rem;
+  background: linear-gradient(135deg, var(--text) 0%, var(--text-muted) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-sub {
+  font-size: clamp(1rem, 2vw, 1.2rem);
+  color: var(--text-muted); max-width: 580px;
+  margin: 0 auto 2.5rem; line-height: 1.7;
+}
+
+.hero-ctas { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+
+/* ---- Problem Section ---- */
+.problem { padding: 6rem 0; }
+
+.problem-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem; margin-top: 2.5rem;
+}
+
+.problem-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  transition: border-color 0.3s;
+}
+.problem-card:hover { border-color: var(--border-hover); }
+
+.problem-icon {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 1.25rem;
+}
+.problem-icon svg { width: 20px; height: 20px; }
+.problem-icon.red { background: rgba(239, 68, 68, 0.1); color: var(--red); }
+.problem-icon.amber { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+.problem-icon.purple { background: rgba(168, 85, 247, 0.1); color: var(--purple); }
+
+.problem-card h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; }
+.problem-card p { font-size: 0.9rem; color: var(--text-muted); line-height: 1.6; }
+
+/* ---- How It Works ---- */
+.how { padding: 6rem 0; }
+
+.steps {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem; margin-top: 2.5rem;
+}
+
+.step {
+  position: relative;
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 2rem 1.5rem;
+  text-align: center;
+}
+
+.step-num {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; border-radius: 50%;
+  background: rgba(249, 115, 22, 0.12); color: var(--orange);
+  font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.step h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; }
+.step p { font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; }
+
+.step-connector {
+  display: none; position: absolute; right: -1.5rem; top: 50%;
+  width: 1.5rem; height: 2px; background: var(--border);
+}
+
+/* ---- Fee Comparison ---- */
+.fees { padding: 6rem 0; }
+
+.fee-chart { margin-top: 2.5rem; max-width: 640px; }
+
+.fee-row {
+  display: flex; align-items: center; gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.fee-label {
+  width: 120px; flex-shrink: 0;
+  font-size: 0.9rem; font-weight: 500;
+}
+.fee-label.highlight { color: var(--orange); font-weight: 600; }
+
+.fee-bar-track {
+  flex: 1; height: 36px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px; overflow: hidden;
+  position: relative;
+}
+
+.fee-bar-fill {
+  height: 100%; border-radius: 8px;
+  display: flex; align-items: center;
+  padding-left: 0.75rem;
+  font-size: 0.8rem; font-weight: 600;
+  transition: width 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.fee-bar-fill.studio { background: linear-gradient(90deg, var(--orange), #fb923c); width: 4.9%; min-width: 60px; }
+.fee-bar-fill.upwork { background: rgba(255, 255, 255, 0.1); width: 50%; }
+.fee-bar-fill.fiverr { background: rgba(255, 255, 255, 0.06); width: 100%; }
+
+.fee-tagline {
+  margin-top: 1.5rem;
+  font-family: 'Outfit', sans-serif; font-size: 1.3rem; font-weight: 600;
+}
+
+/* ---- Features Grid ---- */
+.features { padding: 6rem 0; }
+
+.features-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 1rem; margin-top: 2.5rem;
+}
+
+.feature-card {
+  --mouse-x: 50%; --mouse-y: 50%;
+  position: relative;
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 1.5rem;
+  overflow: hidden;
+  transition: border-color 0.3s, transform 0.2s;
+}
+.feature-card:hover { border-color: var(--border-hover); transform: translateY(-2px); }
+
+.feature-card::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(300px circle at var(--mouse-x) var(--mouse-y), rgba(249, 115, 22, 0.06), transparent 60%);
+  opacity: 0; transition: opacity 0.3s;
+  pointer-events: none;
+}
+.feature-card:hover::before { opacity: 1; }
+
+.feature-card.highlight {
+  grid-column: span 2;
+  border-color: rgba(249, 115, 22, 0.2);
+  background: linear-gradient(135deg, var(--bg-card), rgba(249, 115, 22, 0.04));
+}
+
+.feature-icon {
+  width: 36px; height: 36px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 1rem;
+}
+.feature-icon svg { width: 18px; height: 18px; }
+.feature-icon.orange { background: rgba(249, 115, 22, 0.1); color: var(--orange); }
+.feature-icon.purple { background: rgba(168, 85, 247, 0.1); color: var(--purple); }
+.feature-icon.green { background: rgba(34, 197, 94, 0.1); color: var(--green); }
+.feature-icon.cyan { background: rgba(6, 182, 212, 0.1); color: var(--cyan); }
+
+.feature-card h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.4rem; }
+.feature-card p { font-size: 0.82rem; color: var(--text-muted); line-height: 1.55; }
+
+/* ---- MCC Section ---- */
+.mcc { padding: 6rem 0; }
+
+.mcc-layout {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 3rem; align-items: center; margin-top: 2.5rem;
+}
+
+.mcc-points { display: flex; flex-direction: column; gap: 1.5rem; }
+
+.mcc-point {
+  display: flex; gap: 1rem; align-items: flex-start;
+}
+.mcc-point-icon {
+  width: 36px; height: 36px; border-radius: 8px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(168, 85, 247, 0.1); color: var(--purple);
+}
+.mcc-point-icon svg { width: 18px; height: 18px; }
+.mcc-point h4 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.25rem; }
+.mcc-point p { font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; }
+
+.mcc-visual {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 2rem;
+}
+
+.mcc-token {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.08), rgba(249, 115, 22, 0.06));
+  border: 1px solid rgba(168, 85, 247, 0.2);
+  border-radius: var(--radius); padding: 1.5rem;
+}
+
+.mcc-token-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+.mcc-token-badge {
+  font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--purple); background: rgba(168, 85, 247, 0.12);
+  padding: 0.2rem 0.6rem; border-radius: 4px;
+}
+.mcc-token-taxon { font-size: 0.7rem; color: var(--text-dim); }
+
+.mcc-token-title { font-family: 'Outfit', sans-serif; font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; }
+
+.mcc-token-meta {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;
+}
+.mcc-meta-item label { display: block; font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; }
+.mcc-meta-item span { font-size: 0.8rem; font-weight: 500; }
+
+.mcc-quote {
+  margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border);
+  font-style: italic; color: var(--text-muted); font-size: 0.95rem;
+}
+
+/* ---- Under the Hood ---- */
+.tech { padding: 6rem 0; }
+
+.tech-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 1rem; margin-top: 2.5rem;
+}
+
+.tech-item {
+  display: flex; gap: 0.75rem; align-items: flex-start;
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 1.25rem;
+}
+
+.tech-bullet {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--orange); margin-top: 0.5rem; flex-shrink: 0;
+}
+
+.tech-item strong { display: block; font-size: 0.9rem; font-weight: 600; margin-bottom: 0.15rem; }
+.tech-item p { font-size: 0.82rem; color: var(--text-muted); line-height: 1.55; }
+
+/* ---- Dispute Resolution ---- */
+.disputes { padding: 6rem 0; }
+
+.dispute-flow {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem; margin-top: 2.5rem;
+}
+
+.dispute-step {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 2rem;
+  text-align: center; position: relative;
+}
+
+.dispute-num {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: rgba(6, 182, 212, 0.1); color: var(--cyan);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 0.8rem;
+  margin-bottom: 1rem;
+}
+
+.dispute-step h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; }
+.dispute-step p { font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; }
+.dispute-step .time { font-size: 0.75rem; color: var(--text-dim); margin-top: 0.75rem; }
+
+.dispute-quote {
+  text-align: center; margin-top: 2rem;
+  font-size: 1rem; color: var(--text-muted); font-style: italic;
+}
+
+/* ---- CTA Closing ---- */
+.cta-closing {
+  padding: 6rem 0;
+  text-align: center;
+}
+
+.cta-closing h2 {
+  font-size: clamp(1.5rem, 3.5vw, 2.2rem);
+  font-weight: 700; margin-bottom: 0.75rem;
+}
+
+.cta-closing p { color: var(--text-muted); margin-bottom: 2rem; font-size: 1rem; }
+.cta-legal { margin-top: 2rem; font-size: 0.75rem; color: var(--text-dim); }
+
+/* ---- Footer ---- */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 2.5rem 0;
+}
+
+.footer-inner {
+  display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; gap: 1rem;
+}
+
+.footer-left { font-size: 0.8rem; color: var(--text-dim); }
+.footer-left span { color: var(--text-muted); font-weight: 500; }
+
+.footer-links { display: flex; gap: 1.5rem; }
+.footer-links a { font-size: 0.8rem; color: var(--text-dim); text-decoration: none; transition: color 0.2s; }
+.footer-links a:hover { color: var(--text-muted); }
+
+.footer-origin { font-size: 0.75rem; color: var(--text-dim); }
+
+/* ---- Animations ---- */
+.reveal { opacity: 0; transform: translateY(24px); }
+
+/* ---- Responsive ---- */
+@media (max-width: 900px) {
+  .nav-links { display: none; }
+  .nav-mobile-toggle { display: block; }
+
+  .problem-grid, .dispute-flow { grid-template-columns: 1fr; }
+  .steps { grid-template-columns: repeat(2, 1fr); }
+  .features-grid { grid-template-columns: repeat(2, 1fr); }
+  .feature-card.highlight { grid-column: span 2; }
+  .mcc-layout { grid-template-columns: 1fr; }
+  .tech-grid { grid-template-columns: 1fr; }
+
+  .hero h1 { font-size: clamp(1.8rem, 6vw, 2.8rem); }
+  .fee-label { width: 90px; font-size: 0.8rem; }
+}
+
+@media (max-width: 600px) {
+  nav { padding: 0.75rem 1rem; }
+  .steps { grid-template-columns: 1fr; }
+  .features-grid { grid-template-columns: 1fr; }
+  .feature-card.highlight { grid-column: span 1; }
+  section { padding-top: 4rem; padding-bottom: 4rem; }
+  .hero { padding-top: 6rem; }
+  .footer-inner { flex-direction: column; text-align: center; }
+}
+</style>
+</head>
+<body>
+
+<!-- Background layers -->
+<canvas id="three-canvas"></canvas>
+<div class="noise"></div>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+
+<!-- Navigation -->
+<nav>
+  <a href="#" class="nav-logo">
+    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+      <rect width="28" height="28" rx="6" fill="#f97316" fill-opacity="0.15"/>
+      <text x="7" y="20" font-family="Outfit, sans-serif" font-weight="800" font-size="16" fill="#f97316">S</text>
+    </svg>
+    StudioLedger
+  </a>
+  <ul class="nav-links">
+    <li><a href="#how">How It Works</a></li>
+    <li><a href="#fees">Fees</a></li>
+    <li><a href="#mcc">Reputation</a></li>
+    <li><a href="#tech">Testnet</a></li>
+    <li><a href="#" class="btn-primary">Try the Testnet</a></li>
+  </ul>
+  <button class="nav-mobile-toggle" onclick="document.querySelector('.nav-links').style.display = document.querySelector('.nav-links').style.display === 'flex' ? 'none' : 'flex'" aria-label="Toggle menu">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+</nav>
+
+<!-- Hero -->
+<section class="hero" id="hero">
+  <div>
+    <div class="hero-badge reveal">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      AUSTRAC Registered &middot; Built on XRPL
+    </div>
+    <h1 class="reveal">The settlement protocol<br>for creative work.</h1>
+    <p class="hero-sub reveal">Escrow-protected contracts. Portable credentials. 0.98% fees.<br>No bank, no float, no chasing.</p>
+    <div class="hero-ctas reveal">
+      <a href="#" class="btn-primary">
+        Try the Testnet
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+      </a>
+      <a href="https://github.com/studioledger" class="btn-secondary" target="_blank" rel="noopener">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.4 5.4 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65S8.93 17.38 9 18v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
+        Read the Docs
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- The Problem -->
+<section class="problem" id="problem">
+  <div class="container">
+    <span class="section-label reveal">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      The Problem
+    </span>
+    <h2 class="section-title reveal">The freelance economy is broken.</h2>
+    <div class="problem-grid">
+      <div class="problem-card reveal">
+        <div class="problem-icon red">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <h3>Late payments</h3>
+        <p>Net-30 means net-never. Creators chase invoices instead of doing their work. Average freelancer spends 20 hours/year on collections.</p>
+      </div>
+      <div class="problem-card reveal">
+        <div class="problem-icon amber">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <h3>Platform lock-in</h3>
+        <p>Your reviews, ratings, and work history are trapped on one platform. Leave, and you start from zero.</p>
+      </div>
+      <div class="problem-card reveal">
+        <div class="problem-icon purple">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <h3>Opaque disputes</h3>
+        <p>When things go wrong, the platform picks a winner behind closed doors. No evidence trail, no appeal, no transparency.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- How It Works -->
+<section class="how" id="how">
+  <div class="container">
+    <span class="section-label reveal">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      How It Works
+    </span>
+    <h2 class="section-title reveal">Four steps. No intermediaries.</h2>
+    <div class="steps">
+      <div class="step reveal">
+        <div class="step-num">1</div>
+        <h3>Create a contract</h3>
+        <p>Pick a template. Set scope, milestones, deadlines, and payment terms. Both parties sign.</p>
+      </div>
+      <div class="step reveal">
+        <div class="step-num">2</div>
+        <h3>Client funds escrow</h3>
+        <p>Funds lock on XRPL with crypto-conditions. Not in our bank account -- on the ledger, verifiable by both parties.</p>
+      </div>
+      <div class="step reveal">
+        <div class="step-num">3</div>
+        <h3>Deliver and approve</h3>
+        <p>Submit work per milestone. Client reviews and approves. SHA-256 hash of each deliverable is recorded on-chain.</p>
+      </div>
+      <div class="step reveal">
+        <div class="step-num">4</div>
+        <h3>Funds release + MCC mints</h3>
+        <p>Escrow releases instantly on approval. A Minted Craft Credential is issued -- verifiable proof of completed work.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Fee Comparison -->
+<section class="fees" id="fees">
+  <div class="container">
+    <span class="section-label reveal">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      Fees
+    </span>
+    <h2 class="section-title reveal">Keep 99% of what you earn.</h2>
+    <p class="section-sub reveal">We charge 0.98% per escrow release. That's it. No sign-up fees, no subscription, no hidden charges.</p>
+    <div class="fee-chart reveal">
+      <div class="fee-row">
+        <span class="fee-label highlight">StudioLedger</span>
+        <div class="fee-bar-track">
+          <div class="fee-bar-fill studio">0.98%</div>
+        </div>
+      </div>
+      <div class="fee-row">
+        <span class="fee-label">Upwork</span>
+        <div class="fee-bar-track">
+          <div class="fee-bar-fill upwork">10%</div>
+        </div>
+      </div>
+      <div class="fee-row">
+        <span class="fee-label">Fiverr</span>
+        <div class="fee-bar-track">
+          <div class="fee-bar-fill fiverr">20%</div>
+        </div>
+      </div>
+    </div>
+    <p class="fee-tagline reveal">At 0.98%, nobody leaves to avoid fees.<br><span style="color: var(--text-muted); font-size: 0.9rem; font-weight: 400;">The protection is why they stay.</span></p>
+  </div>
+</section>
+
+<!-- Features Grid -->
+<section class="features" id="features">
+  <div class="container">
+    <span class="section-label reveal">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Features
+    </span>
+    <h2 class="section-title reveal">What ships with the protocol.</h2>
+
+    <div class="features-grid">
+      <div class="feature-card highlight reveal">
+        <div class="feature-icon orange">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <h3>Escrow Protection</h3>
+        <p>Funds lock on XRPL with SHA-256 crypto-conditions. Not a database entry -- an actual on-chain escrow that either party can verify. The blockchain IS the settlement layer.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon purple">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        </div>
+        <h3>Template Contracts</h3>
+        <p>Fixed-price, milestone, retainer. Pick a template, fill in the terms, skip the lawyer for standard work.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon green">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
+        </div>
+        <h3>Instant Settlement</h3>
+        <p>XRPL settles in 3-5 seconds. Approve a milestone, get paid. No 14-day holding period.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon cyan">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        </div>
+        <h3>Multi-Currency</h3>
+        <p>XRP, RLUSD, USDC, USDT, USD, EUR. Connect any wallet -- Xaman, MetaMask, Phantom, GemWallet, Crossmark.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon orange">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+        <h3>Milestone Tracking</h3>
+        <p>Break work into deliverables. Each milestone has its own escrow, deadline, and approval gate.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon green">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <h3>Zero Chargebacks</h3>
+        <p>On-chain escrow eliminates chargebacks. Funds are committed. No surprises 30 days later.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon cyan">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+        </div>
+        <h3>3-Tier Disputes</h3>
+        <p>Direct resolution, platform review, community arbitration. Escalation is transparent and logged on-chain.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon purple">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        </div>
+        <h3>Built-in Marketplace</h3>
+        <p>Post briefs, receive proposals, negotiate terms. All within the protocol -- no need for a separate discovery platform.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Minted Craft Credentials -->
+<section class="mcc" id="mcc">
+  <div class="container">
+    <span class="section-label reveal">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      Minted Craft Credentials
+    </span>
+    <h2 class="section-title reveal">Your reputation isn't trapped.<br>It travels with you.</h2>
+    <p class="section-sub reveal">Every completed job mints a verifiable on-chain credential. Not a review that disappears when you leave a platform -- a permanent, portable work receipt.</p>
+
+    <div class="mcc-layout">
+      <div class="mcc-points">
+        <div class="mcc-point reveal">
+          <div class="mcc-point-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </div>
+          <div>
+            <h4>Verified Work Receipt</h4>
+            <p>Minted as an XLS-20 token on XRPL when a milestone is approved. Links to contract terms, deliverable hash, and payment amount.</p>
+          </div>
+        </div>
+        <div class="mcc-point reveal">
+          <div class="mcc-point-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+          </div>
+          <div>
+            <h4>Client Verification</h4>
+            <p>Both parties are referenced in the credential metadata. Clients can verify they received the work. Creators can prove they delivered it.</p>
+          </div>
+        </div>
+        <div class="mcc-point reveal">
+          <div class="mcc-point-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          </div>
+          <div>
+            <h4>Platform-Independent</h4>
+            <p>Your MCCs live on XRPL, not in our database. If StudioLedger disappears tomorrow, your credentials don't.</p>
+          </div>
+        </div>
+      </div>
+      <div class="mcc-visual reveal">
+        <div class="mcc-token">
+          <div class="mcc-token-header">
+            <span class="mcc-token-badge">Work Credential</span>
+            <span class="mcc-token-taxon">Taxon 1 / XLS-20</span>
+          </div>
+          <div class="mcc-token-title">Brand Identity Package -- Acme Corp</div>
+          <div class="mcc-token-meta">
+            <div class="mcc-meta-item">
+              <label>Creator</label>
+              <span>r9Kx4...7mPq</span>
+            </div>
+            <div class="mcc-meta-item">
+              <label>Client</label>
+              <span>rHn3w...4vBz</span>
+            </div>
+            <div class="mcc-meta-item">
+              <label>Amount</label>
+              <span>2,500 RLUSD</span>
+            </div>
+            <div class="mcc-meta-item">
+              <label>Completed</label>
+              <span>2026-04-18</span>
+            </div>
+          </div>
+        </div>
+        <p class="mcc-quote">"Your work history should belong to you, not to a platform."</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Under the Hood -->
+<section class="tech" id="tech">
+  <div class="container">
+    <span class="section-label reveal">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+      Under the Hood
+    </span>
+    <h2 class="section-title reveal">Built for people who read the source.</h2>
+
+    <div class="tech-grid">
+      <div class="tech-item reveal">
+        <div class="tech-bullet"></div>
+        <div>
+          <strong>XRPL Token Escrow (XLS-85)</strong>
+          <p>Native escrow objects on the XRP Ledger. Not a smart contract wrapper -- a first-class ledger primitive. Supports time-based cancellation and crypto-conditions.</p>
+        </div>
+      </div>
+      <div class="tech-item reveal">
+        <div class="tech-bullet"></div>
+        <div>
+          <strong>Crypto-Conditions (SHA-256 preimage)</strong>
+          <p>Escrow release requires a SHA-256 preimage fulfillment via five-bells-condition (RFC draft-thomas-crypto-conditions). Platform holds the preimage until approval.</p>
+        </div>
+      </div>
+      <div class="tech-item reveal">
+        <div class="tech-bullet"></div>
+        <div>
+          <strong>Multi-Currency Trust Lines</strong>
+          <p>RLUSD (Ripple-issued, NYDFS regulated), USDC, USDT, USD, EUR via GateHub issued currencies. RLUSD-only for escrow contracts to eliminate volatility.</p>
+        </div>
+      </div>
+      <div class="tech-item reveal">
+        <div class="tech-bullet"></div>
+        <div>
+          <strong>XLS-20 NFTokens for Credentials</strong>
+          <p>MCCs are XLS-20 tokens with 3 taxons: Work Credential (1), License (2), Access Pass (3). Metadata references contract hash, deliverable IPFS URI, and license terms.</p>
+        </div>
+      </div>
+      <div class="tech-item reveal">
+        <div class="tech-bullet"></div>
+        <div>
+          <strong>AES-256-GCM Encryption</strong>
+          <p>Platform-managed wallet seeds and escrow preimages encrypted at rest. Per-key IV, authenticated encryption. Key rotation planned for production.</p>
+        </div>
+      </div>
+      <div class="tech-item reveal">
+        <div class="tech-bullet"></div>
+        <div>
+          <strong>AUSTRAC VASP Compliant</strong>
+          <p>Registered under the AML/CTF Amendment Act 2024 (Tranche 2). Full AML/CTF program drafted. Travel Rule compliance for all virtual asset transfers. No minimum threshold.</p>
+        </div>
+      </div>
+      <div class="tech-item reveal">
+        <div class="tech-bullet"></div>
+        <div>
+          <strong>Open Source</strong>
+          <p>MIT license. Next.js 14 + TypeScript + xrpl.js v4. Supabase for auth and data. The code is the documentation. <a href="https://github.com/studioledger" target="_blank" rel="noopener">github.com/studioledger</a></p>
+        </div>
+      </div>
+      <div class="tech-item reveal">
+        <div class="tech-bullet"></div>
+        <div>
+          <strong>Chain-Agnostic Wallet Connect</strong>
+          <p>Xaman (XRPL), MetaMask (EVM), Phantom (Solana), GemWallet, Crossmark. Bring any wallet. Settlement always runs on XRPL.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Dispute Resolution -->
+<section class="disputes" id="disputes">
+  <div class="container">
+    <span class="section-label reveal">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+      Dispute Resolution
+    </span>
+    <h2 class="section-title reveal">Most platforms bury their dispute process.<br>We lead with it.</h2>
+
+    <div class="dispute-flow">
+      <div class="dispute-step reveal">
+        <div class="dispute-num">1</div>
+        <h3>Direct Resolution</h3>
+        <p>Parties negotiate directly with full message history and evidence trail. Most disputes resolve here.</p>
+        <div class="time">7-day window</div>
+      </div>
+      <div class="dispute-step reveal">
+        <div class="dispute-num">2</div>
+        <h3>Platform Review</h3>
+        <p>StudioLedger admin reviews evidence: contract terms, deliverables, communication timeline. Structured one-page brief.</p>
+        <div class="time">5-day review</div>
+      </div>
+      <div class="dispute-step reveal">
+        <div class="dispute-num">3</div>
+        <h3>Community Arbitration</h3>
+        <p>Panel of 3 MCC-holding arbitrators qualified by skill domain. 5% arbitration fee from the losing party. Decisions are final.</p>
+        <div class="time">Binding decision</div>
+      </div>
+    </div>
+    <p class="dispute-quote reveal">"Transparency isn't a feature. It's the baseline."</p>
+  </div>
+</section>
+
+<!-- CTA Closing -->
+<section class="cta-closing" id="cta">
+  <div class="container">
+    <h2 class="reveal">Join the testnet. Break things.<br>Tell us what sucks.</h2>
+    <p class="reveal">We're in beta. The escrow works. The credentials mint. The marketplace connects. There's plenty left to build -- and we'd rather build it with feedback than assumptions.</p>
+    <div class="reveal">
+      <a href="#" class="btn-primary" style="font-size: 1rem; padding: 0.75rem 2rem;">
+        Try the Testnet
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+      </a>
+    </div>
+    <p class="cta-legal">StudioLedger Pty Ltd &middot; AUSTRAC Registered VASP &middot; ACN 696 549 809</p>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <div class="footer-left"><span>StudioLedger Pty Ltd</span> &mdash; Built on XRPL</div>
+      <div class="footer-links">
+        <a href="https://github.com/studioledger" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://x.com/studioledger" target="_blank" rel="noopener">X / Twitter</a>
+        <a href="https://studioledger.ai/docs" target="_blank" rel="noopener">Docs</a>
+      </div>
+      <div class="footer-origin">Made in Tasmania, Australia</div>
+    </div>
+  </div>
+</footer>
+
+<script>
+// ---- Lenis Smooth Scroll ----
+const lenis = new Lenis({ duration: 1.2, easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)) });
+function raf(time) { lenis.raf(time); requestAnimationFrame(raf); }
+requestAnimationFrame(raf);
+
+// Sync Lenis with GSAP ScrollTrigger
+lenis.on('scroll', ScrollTrigger.update);
+gsap.ticker.add((time) => { lenis.raf(time * 1000); });
+gsap.ticker.lagSmoothing(0);
+
+// ---- GSAP Reveal Animations ----
+gsap.registerPlugin(ScrollTrigger);
+
+gsap.utils.toArray('.reveal').forEach((el, i) => {
+  gsap.fromTo(el,
+    { opacity: 0, y: 24 },
+    {
+      opacity: 1, y: 0,
+      duration: 0.7,
+      ease: "power2.out",
+      scrollTrigger: {
+        trigger: el,
+        start: "top 88%",
+        toggleActions: "play none none none"
+      },
+      delay: (i % 4) * 0.08
+    }
+  );
+});
+
+// ---- Fee bar animation ----
+document.querySelectorAll('.fee-bar-fill').forEach((bar) => {
+  const w = bar.style.width || window.getComputedStyle(bar).width;
+  gsap.fromTo(bar,
+    { width: '0%' },
+    {
+      width: w,
+      duration: 1.4,
+      ease: "power3.out",
+      scrollTrigger: {
+        trigger: bar.closest('.fee-row'),
+        start: "top 85%",
+        toggleActions: "play none none none"
+      }
+    }
+  );
+});
+
+// ---- Mouse-tracking glow on feature cards ----
+document.querySelectorAll('.feature-card').forEach(card => {
+  card.addEventListener('mousemove', (e) => {
+    const rect = card.getBoundingClientRect();
+    card.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
+    card.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
+  });
+});
+
+// ---- Three.js Wireframe Background ----
+(function initThree() {
+  const canvas = document.getElementById('three-canvas');
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+  camera.position.z = 5;
+
+  const geometry = new THREE.PlaneGeometry(16, 10, 60, 60);
+  const material = new THREE.MeshStandardMaterial({
+    color: 0x12121a,
+    emissive: 0x0e0e16,
+    wireframe: true,
+    transparent: true,
+    opacity: 0.1
+  });
+
+  const plane = new THREE.Mesh(geometry, material);
+  plane.rotation.x = -Math.PI / 3;
+  plane.position.y = -2;
+  scene.add(plane);
+
+  scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+
+  const light1 = new THREE.PointLight(0xf97316, 1.5, 20);
+  light1.position.set(0, 2, 2);
+  scene.add(light1);
+
+  const light2 = new THREE.PointLight(0xa855f7, 0.8, 15);
+  light2.position.set(-3, -1, 2);
+  scene.add(light2);
+
+  const clock = new THREE.Clock();
+  let scrollY = 0;
+  window.addEventListener('scroll', () => { scrollY = window.scrollY; }, { passive: true });
+
+  function animate() {
+    requestAnimationFrame(animate);
+    const t = clock.getElapsedTime();
+    const positions = plane.geometry.attributes.position;
+
+    for (let i = 0; i < positions.count; i++) {
+      const x = positions.getX(i);
+      const y = positions.getY(i);
+      positions.setZ(i, Math.sin(x + t * 0.4) * 0.4 + Math.cos(y + t * 0.35) * 0.4);
+    }
+    positions.needsUpdate = true;
+
+    const sf = scrollY * 0.0008;
+    camera.position.y = -sf * 1.5;
+    plane.rotation.z = t * 0.04 + sf * 0.4;
+    light1.position.x = Math.sin(t * 0.4) * 3;
+    light2.position.x = Math.cos(t * 0.25) * 2.5;
+
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+})();
+</script>
+</body>
+</html>
