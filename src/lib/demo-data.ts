@@ -35,6 +35,7 @@ export const demoUser: User = {
       frequency: 'weekly',
     },
   },
+  is_admin: false,
   created_at: '2024-11-15T10:00:00Z',
   updated_at: '2025-02-20T14:30:00Z',
 };
@@ -52,6 +53,7 @@ export const demoMarketplaceUser: User = {
   bio: 'Global brand looking for creative talent.',
   skills: [],
   payout_config: null,
+  is_admin: false,
   created_at: '2024-12-01T08:00:00Z',
   updated_at: '2025-03-01T10:00:00Z',
 };

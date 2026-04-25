@@ -29,7 +29,7 @@ const allCategories = [
     icon: Award,
     colorVar: MCC_UI_COLORS.CREDENTIAL,
     colorBgVar: 'var(--accent-purple-bg)',
-    crDescription: 'Proof-of-work tokens minted automatically when a milestone escrow is released. Permanent on-chain portfolio.',
+    crDescription: 'Work Credential tokens minted automatically when a milestone escrow is released. Permanent on-chain portfolio.',
     mkDescription: 'Work Credentials earned by creators you hired. Verifiable proof that they delivered.',
     canCreate: false,
     roles: ['creator', 'both'] as string[],      // Primary for creator

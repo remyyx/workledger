@@ -1,8 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createServerSupabase } from '@/lib/supabase/server';
 
 /**
  * GET /api/creators
@@ -16,7 +15,7 @@ import { cookies } from 'next/headers';
  */
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createServerComponentClient({ cookies });
+    const supabase = createServerSupabase();
 
     const { searchParams } = new URL(request.url);
     const skill = searchParams.get('skill');
@@ -36,7 +35,7 @@ export async function GET(request: NextRequest) {
 
       if (allCreators) {
         const filtered = allCreators.filter(creator =>
-          creator.skills && creator.skills.some(s =>
+          creator.skills && creator.skills.some((s: string) =>
             skills.some(sk => (s || '').toLowerCase().includes(sk))
           )
         );

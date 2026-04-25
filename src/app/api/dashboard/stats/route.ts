@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextResponse } from 'next/server';
 import { getSessionOrDev } from '@/lib/supabase/dev-session';
+import { addAmount } from '@/lib/math';
 
 /**
  * GET /api/dashboard/stats
@@ -76,15 +77,21 @@ export async function GET() {
       c.status === 'completed'
     ).length;
 
-    // Released milestones = earned amount
+    // Released milestones = earned amount (safe BigInt arithmetic)
     const releasedMilestones = milestones.filter(m => m.status === 'released');
-    const totalEarned = releasedMilestones.reduce((sum, m) => sum + (m.amount || 0), 0);
+    const totalEarned = releasedMilestones.reduce(
+      (sum, m) => addAmount(sum, String(m.amount || 0)),
+      '0.000000',
+    );
 
-    // Escrow held = funded + submitted milestones
+    // Escrow held = funded + submitted milestones (safe BigInt arithmetic)
     const escrowMilestones = milestones.filter(m =>
       ['funded', 'submitted', 'approved'].includes(m.status)
     );
-    const escrowHeld = escrowMilestones.reduce((sum, m) => sum + (m.amount || 0), 0);
+    const escrowHeld = escrowMilestones.reduce(
+      (sum, m) => addAmount(sum, String(m.amount || 0)),
+      '0.000000',
+    );
 
     // MCC counts by taxon
     const workCredentials = mccs.filter(n => n.taxon === 1).length;
@@ -93,11 +100,11 @@ export async function GET() {
 
     return NextResponse.json({
       stats: {
-        totalEarned: totalEarned.toFixed(2),
+        totalEarned,
         activeContracts,
         completedContracts,
         totalContracts: contracts.length,
-        escrowHeld: escrowHeld.toFixed(2),
+        escrowHeld,
         mccs: {
           total: mccs.length,
           workCredentials,

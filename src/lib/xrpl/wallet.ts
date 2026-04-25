@@ -8,6 +8,7 @@ import { Wallet, xrpToDrops, dropsToXrp } from 'xrpl';
 import type { TrustSet, AccountInfoRequest } from 'xrpl';
 import { getXrplClient } from './client';
 import { GATEHUB_ISSUERS, RLUSD_ISSUER, RLUSD_CURRENCY, PLATFORM, STATIC_EXCHANGE_RATES } from '@/config/constants';
+import { cmpAmount } from '@/lib/math';
 import type { WalletBalance } from '@/types';
 
 /**
@@ -157,5 +158,5 @@ export async function hasBalance(
   );
 
   if (!balance) return false;
-  return parseFloat(balance.value) >= parseFloat(amount);
+  return cmpAmount(balance.value, amount) >= 0;
 }

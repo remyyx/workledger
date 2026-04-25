@@ -56,7 +56,14 @@ const transitionSchema = z.object({
   // Xaman mode: UUID of a completed sign payload
   xamanPayloadUuid: z.string().optional(),
   // Direct mode (testing only): wallet seed for server-side signing
+  // SECURITY: Only accepted in development mode — stripped in production
   walletSeed: z.string().optional(),
+}).transform((data) => {
+  // Gate walletSeed behind development mode — never allow in production
+  if (process.env.NODE_ENV !== 'development' && data.walletSeed) {
+    delete data.walletSeed;
+  }
+  return data;
 });
 
 export async function PATCH(

@@ -26,7 +26,7 @@ export default function Version00Page() {
       >
         <div className="py-6 px-5">
           <span className="font-bold text-2xl tracking-tight" style={{ color: 'var(--text)' }}>
-            StudioLedger.ai
+            StudioLedger
           </span>
         </div>
         <nav className="flex-1 py-3 px-3 space-y-1">

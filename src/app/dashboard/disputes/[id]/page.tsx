@@ -172,7 +172,7 @@ export default function DisputePage({ params }: DisputePageProps) {
                     Amount in Dispute
                   </p>
                   <p className="text-sm font-medium" style={{ color: 'var(--text)' }}>
-                    {formatAmount(dispute.milestones?.amount || 0)} {dispute.contracts?.currency}
+                    {formatAmount(String(dispute.milestones?.amount || 0), dispute.contracts?.currency || 'RLUSD')}
                   </p>
                 </div>
                 <div>

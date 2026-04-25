@@ -9,8 +9,12 @@ export async function middleware(request: NextRequest) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  // Skip auth checks if Supabase isn't configured (dev mode without env vars)
+  // Skip auth checks if Supabase isn't configured — ONLY in development
   if (!supabaseUrl || !supabaseKey || supabaseUrl.includes('your-project')) {
+    if (process.env.NODE_ENV === 'production') {
+      // In production, missing Supabase config is a hard failure — never bypass auth
+      return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 });
+    }
     return response;
   }
 
@@ -54,8 +58,11 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }
   } catch (error) {
-    // If auth check fails, allow the request through in dev
     console.error('[Middleware] Auth check failed:', error);
+    // In production, auth failures must not silently pass through
+    if (process.env.NODE_ENV === 'production') {
+      return NextResponse.redirect(new URL('/login', request.url));
+    }
   }
 
   return response;

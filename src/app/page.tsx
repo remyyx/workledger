@@ -21,7 +21,7 @@ export default function HomePage() {
             S
           </div>
           <span className="font-semibold text-lg" style={{ color: 'var(--text)' }}>
-            StudioLedger.ai
+            StudioLedger
           </span>
         </div>
         <div className="flex items-center gap-4">
@@ -74,7 +74,7 @@ export default function HomePage() {
             className="text-xl max-w-2xl mx-auto mb-10"
             style={{ color: 'var(--text-muted)' }}
           >
-            StudioLedger.ai is a creator wallet with escrow-protected invoicing,
+            StudioLedger is a creator wallet with escrow-protected invoicing,
             smart contracts, and Minted Craft Credentials. 0.98% fees. Instant payouts.
             Your reputation travels with you.
           </p>
@@ -149,7 +149,7 @@ export default function HomePage() {
                 0.98% Fees
               </h3>
               <p style={{ color: 'var(--text-muted)' }}>
-                Keep 99.4%+ of what you earn. Pay in 7+ currencies.
+                Keep 99.02% of what you earn. Pay in 7+ currencies.
                 Instant settlement. No waiting for &quot;processing.&quot;
               </p>
             </div>
@@ -203,7 +203,7 @@ export default function HomePage() {
         className="border-t py-8 text-center text-sm"
         style={{ borderColor: 'var(--border)', color: 'var(--text-muted)' }}
       >
-        <p>StudioLedger.ai by StudioLedger Pty Ltd — Built on XRPL</p>
+        <p>StudioLedger by StudioLedger Pty Ltd — Built on XRPL</p>
       </footer>
     </main>
   );

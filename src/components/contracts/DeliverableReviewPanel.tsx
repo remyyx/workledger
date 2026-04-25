@@ -17,6 +17,7 @@ interface DeliverableReviewPanelProps {
 }
 
 import { PLATFORM } from '@/config/constants';
+import { calcFeeBreakdown } from '@/lib/math';
 
 const PLATFORM_FEE_PERCENT = PLATFORM.FEE_PERCENT;
 
@@ -90,10 +91,11 @@ export default function DeliverableReviewPanel({
     }
   };
 
-  // Calculate amount after fee
-  const amountNum = parseFloat(milestone.amount.toString());
-  const feeAmount = amountNum * (PLATFORM_FEE_PERCENT / 100);
-  const releaseAmount = amountNum - feeAmount;
+  // Calculate amount after fee using safe BigInt math
+  const { platformFee: feeAmount, net: releaseAmount } = calcFeeBreakdown(
+    milestone.amount.toString(),
+    PLATFORM_FEE_PERCENT,
+  );
 
   // Determine action buttons based on status and role
   const canApprove = userRole === 'marketplace' && milestone.status === 'submitted';
@@ -214,13 +216,13 @@ export default function DeliverableReviewPanel({
           <div className="flex justify-between items-baseline">
             <span className="text-sm text-text-secondary">Platform Fee ({PLATFORM_FEE_PERCENT}%):</span>
             <span className="font-mono text-sm text-text-muted">
-              -{formatAmount(feeAmount.toString(), contractCurrency)}
+              -{formatAmount(feeAmount, contractCurrency)}
             </span>
           </div>
           <div className="border-t border-escrow/30 pt-2 flex justify-between items-baseline">
             <span className="text-sm font-medium text-text">Creator Receives:</span>
             <span className="font-medium text-escrow">
-              {formatAmount(releaseAmount.toString(), contractCurrency)}
+              {formatAmount(releaseAmount, contractCurrency)}
             </span>
           </div>
         </div>

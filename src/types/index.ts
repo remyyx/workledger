@@ -123,7 +123,7 @@ export interface Milestone {
 }
 
 // --- MCC Types (Minted Craft Credential) ---
-// On-chain copyright tokens: proof of work, licensed rights, or access passes.
+// On-chain credential tokens: work receipts, licensed rights, or access passes.
 // Taxon 1 = Work Credential (creator), 2 = License, 3 = Access Pass, 4 = Client Completion Record
 export type MCCTaxon = 1 | 2 | 3 | 4;
 

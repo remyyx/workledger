@@ -8,7 +8,7 @@
 import { Wallet } from 'xrpl';
 import type { EscrowCreate, EscrowFinish, EscrowCancel } from 'xrpl';
 import { getXrplClient } from './client';
-import { RLUSD_ISSUER, RLUSD_CURRENCY } from '@/config/constants';
+import { RLUSD_ISSUER, RLUSD_CURRENCY, assertRlusdIssuerReady } from '@/config/constants';
 import * as crypto from 'crypto';
 
 /**
@@ -76,6 +76,9 @@ export async function createEscrow(params: {
   cancelAfterDays?: number;
   finishAfterMinutes?: number;
 }) {
+  // Safety guard: prevent mainnet transactions with placeholder RLUSD issuer
+  assertRlusdIssuerReady();
+
   const client = await getXrplClient();
 
   const {

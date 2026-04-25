@@ -110,7 +110,7 @@ export function cmpAmount(a: string | number, b: string | number): number {
 /**
  * Format an amount for display (not for on-chain submission).
  * Strips trailing zeros after the required minimum decimal places.
- * e.g. formatDisplay('0.98100', 2) → '0.99'
+ * e.g. formatDisplay('0.98100', 2) → '0.98'
  */
 export function formatDisplay(value: string | number, minDp = 2): string {
   const raw = parseAmount(value);
@@ -146,7 +146,7 @@ export function calcFeeBreakdown(
     return { total: '0.000000', platformFee: '0.000000', net: '0.000000' };
   }
 
-  // feeRate = feePercent / 100  (e.g. 0.98 / 100 = 0.00985)
+  // feeRate = feePercent / 100  (e.g. 0.98 / 100 = 0.0098)
   // Use string to avoid float imprecision in the rate itself
   const feeRate = (feePercent / 100).toFixed(8); // 8 dp → exact for our rate
 

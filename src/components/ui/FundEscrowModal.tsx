@@ -27,7 +27,7 @@ const METHODS: { id: PaymentMethod; label: string; description: string }[] = [
   {
     id: 'wallet',
     label: 'Crypto wallet',
-    description: 'Use an XRPL-compatible wallet. StudioLedger.ai handles the escrow transaction.',
+    description: 'Use an XRPL-compatible wallet. StudioLedger handles the escrow transaction.',
   },
   {
     id: 'test',

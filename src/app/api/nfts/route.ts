@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
 
     const ownerAddress = userRow?.xrpl_address;
     if (!ownerAddress) {
-      return NextResponse.json({ nfts: [], grouped: { proofOfWork: [], licenses: [], accessPasses: [] }, total: 0 });
+      return NextResponse.json({ nfts: [], grouped: { workCredentials: [], licenses: [], accessPasses: [] }, total: 0 });
     }
 
     // Fetch from nft_registry by owner XRPL address
@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
 
     // Group by taxon for easy frontend consumption
     const grouped = {
-      proofOfWork: (nfts || []).filter(n => n.taxon === 1),
+      workCredentials: (nfts || []).filter(n => n.taxon === 1),
       licenses: (nfts || []).filter(n => n.taxon === 2),
       accessPasses: (nfts || []).filter(n => n.taxon === 3),
     };
